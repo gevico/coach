@@ -1,0 +1,10 @@
+.artifacts/
+node_modules/
+dist/
+.DS_Store
+public/examples/
+docs/*
+!docs/cli.md
+.env
+.env.*
+!.env.example

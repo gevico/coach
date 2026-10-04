@@ -1,0 +1,46 @@
+{
+  "name": "coach-canvas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Render Markdown as an interactive column canvas.",
+  "license": "MIT",
+  "engines": { "node": ">=22.12" },
+  "bin": { "coach": "bin/coach.mjs" },
+  "files": ["bin", "dist", "LICENSE", "README.md", "docs/cli.md"],
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "start": "node bin/coach.mjs"
+  },
+  "dependencies": {
+    "@excalidraw/excalidraw": "0.18.1",
+    "@fontsource-variable/noto-sans-sc": "5.3.0",
+    "commander": "15.0.0",
+    "express": "5.2.1",
+    "html-to-image": "1.11.13",
+    "jspdf": "4.2.1",
+    "lucide-react": "1.51.0",
+    "open": "11.0.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-markdown": "10.1.0",
+    "remark-directive": "4.0.0",
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "remark-stringify": "11.0.0",
+    "unified": "11.0.5",
+    "unist-util-visit": "5.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/mdast": "4.0.4",
+    "@types/node": "26.6.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vite": "8.3.2"
+  }
+}
