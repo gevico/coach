@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { Command, InvalidArgumentError } from 'commander';
 import express from 'express';
 import open from 'open';
+import { createMacRecorder } from './mac-recording.mjs';
+import { recordingRoutes } from './recording-routes.mjs';
 
 const packageDirectory = fileURLToPath(new URL('..', import.meta.url));
 const distDirectory = path.join(packageDirectory, 'dist');
@@ -60,21 +62,27 @@ function hasHiddenSegment(relativePath) {
   return relativePath.split(/[\\/]/).some((segment) => segment.startsWith('.'));
 }
 
-function createApp(filePath) {
+function createApp(filePath, notesPath, recorder) {
   const app = express();
   const assetDirectory = path.dirname(filePath);
   const documentId = createHash('sha256').update(filePath).digest('hex').slice(0, 16);
   app.disable('x-powered-by');
 
   app.get('/api/document', async (_request, response) => {
-    const source = await readFile(filePath, 'utf8');
+    const [source, notesSource] = await Promise.all([
+      readFile(filePath, 'utf8'),
+      notesPath ? readFile(notesPath, 'utf8') : undefined,
+    ]);
     response.set('Cache-Control', 'no-store').json({
       source,
       assetBase: '/course-assets/',
       fileName: path.basename(filePath),
       documentId,
+      ...(notesPath ? { notes: { source: notesSource, fileName: path.basename(notesPath) } } : {}),
     });
   });
+
+  app.use('/api/recording', recordingRoutes(recorder));
 
   app.use('/api', (_request, response) => {
     response.status(404).json({ error: '找不到请求的接口。' });
@@ -167,12 +175,16 @@ async function listen(app, preferredPort, allowNextPort) {
 }
 
 async function start(fileArgument, options, command) {
+  if (options.zen && options.presenter) throw new Error('禅模式与演讲模式请分别选择。');
   const filePath = await loadFile(fileArgument);
+  const notesPath = options.notes ? await loadFile(options.notes) : undefined;
   await verifyBuild();
-  const { server, port } = await listen(createApp(filePath), options.port, command.getOptionValueSource('port') !== 'cli');
-  const url = `http://127.0.0.1:${port}/${options.zen ? '?zen=1' : ''}`;
+  const recorder = await createMacRecorder(options.recordDir ? { directory: options.recordDir } : {});
+  const { server, port } = await listen(createApp(filePath, notesPath, recorder), options.port, command.getOptionValueSource('port') !== 'cli');
+  const url = `http://127.0.0.1:${port}/${options.zen ? '?zen=1' : options.presenter ? '?presenter=1' : ''}`;
 
-  const stop = () => {
+  const stop = async () => {
+    await recorder.stop();
     server.close(() => process.exit(0));
     server.closeAllConnections();
   };
@@ -186,6 +198,7 @@ async function start(fileArgument, options, command) {
   });
 
   console.log(`Markdown：${filePath}`);
+  if (notesPath) console.log(`口播稿：${notesPath}`);
   console.log(`画布地址：${url}`);
   console.log('使用左右方向键逐步展示。按 Ctrl+C 停止服务。');
 
@@ -206,8 +219,11 @@ program
   .option('-p, --port <number>', '指定本地服务端口；默认端口占用时自动选择可用端口', parsePort, 4173)
   .option('--no-open', '启动服务后保留画布地址，手动打开浏览器')
   .option('--zen', '打开纯画布展示模式')
+  .option('--presenter', '打开演讲模式，显示 16:9 画布和口播注释')
+  .option('--notes <file.md>', '指定已有的独立 Markdown 口播稿')
+  .option('--record-dir <directory>', '指定 Mac 录制视频保存目录，默认 ~/Movies/Coach')
   .helpOption('-h, --help', '显示使用说明')
-  .addHelpText('after', '\n示例：\n  coach ./lesson.md\n  coach "./演示资料/演示文稿.md" --zen\n  coach ./lesson.md --port 4300 --no-open\n')
+  .addHelpText('after', '\n示例：\n  coach ./lesson.md\n  coach ./lesson.md --presenter\n  coach "./演示资料/演示文稿.md" --zen\n  coach ./lesson.md --notes ./notes.md --presenter\n  coach ./lesson.md --port 4300 --no-open\n')
   .action(start);
 
 try {
