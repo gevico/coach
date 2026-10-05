@@ -22,8 +22,9 @@ export interface NarrationDocument {
 
 const processor = unified().use(remarkParse).use(remarkGfm).use(remarkDirective).use(remarkStringify)
 
-function text(node: { type: string; value?: unknown; children?: unknown }): string {
+function text(node: { type: string; value?: unknown; children?: unknown; alt?: unknown }): string {
   if (typeof node.value === 'string') return node.value
+  if (typeof node.alt === 'string') return node.alt
   if (Array.isArray(node.children)) return node.children.map(text).join('')
   return ''
 }

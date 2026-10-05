@@ -4,33 +4,31 @@ import remarkGfm from 'remark-gfm'
 import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
 import { unified } from 'unified'
-import { extractSpeakerNotes, readSpeakerComment } from './speaker-comments'
+import { attachBoardComments, extractBoardComments, readBoardComment } from './board-comments'
+import type { BoardComments } from './board-comments'
 
 export interface BoardDocument {
   pages: CanvasPage[]
 }
 
-export interface CanvasPage {
+export interface CanvasPage extends BoardComments {
   id: string
   title: string
   columns: CanvasColumn[]
-  notes?: string
 }
 
-export interface CanvasColumn {
+export interface CanvasColumn extends BoardComments {
   id: string
   title: string
   blocks: CanvasBlock[]
-  notes?: string
 }
 
-export interface CanvasBlock {
+export interface CanvasBlock extends BoardComments {
   id: string
   kind: 'heading' | 'paragraph' | 'list' | 'image' | 'code' | 'table' | 'quote' | 'divider'
   markdown: string
   order: number
   start?: number
-  notes?: string
 }
 
 const markdownProcessor = unified()
@@ -129,13 +127,13 @@ export function compileMarkdown(source: string): BoardDocument {
   let currentPage: CanvasPage | undefined
   let currentColumn: CanvasColumn | undefined
   let order = 0
-  let notesTarget: { notes?: string } | undefined
-  let introduction = ''
+  let notesTarget: BoardComments | undefined
+  let introduction: BoardComments = {}
 
   function createPage(node: RootContent, title: string): CanvasPage {
     const page: CanvasPage = { id: nodeId(node, '-page'), title, columns: [] }
-    if (introduction) page.notes = introduction
-    introduction = ''
+    attachBoardComments(page, introduction)
+    introduction = {}
     return page
   }
 
@@ -154,7 +152,7 @@ export function compileMarkdown(source: string): BoardDocument {
   }
 
   function addBlock(node: RootContent, markdown: string, start?: number, suffix = ''): void {
-    const content = extractSpeakerNotes(node)
+    const content = extractBoardComments(node)
     if (!content.node || (content.node.type === 'paragraph' && content.node.children.length === 0)) return
     const column = ensureColumn(node)
     const visibleMarkdown = content.changed ? serializeNode(content.node) : markdown
@@ -170,7 +168,7 @@ export function compileMarkdown(source: string): BoardDocument {
     }
 
     column.blocks.push(block)
-    if (content.notes) block.notes = content.notes
+    attachBoardComments(block, content)
     notesTarget = block
   }
 
@@ -180,20 +178,17 @@ export function compileMarkdown(source: string): BoardDocument {
     }
 
     if (node.type === 'html') {
-      const content = readSpeakerComment(node.value)
+      const content = readBoardComment(node.value)
       if (content.comment) {
-        if (content.notes) {
-          if (notesTarget) notesTarget.notes = [notesTarget.notes, content.notes].filter(Boolean).join('\n\n')
-          else introduction = [introduction, content.notes].filter(Boolean).join('\n\n')
-        }
+        attachBoardComments(notesTarget || introduction, content)
         continue
       }
     }
 
     if (node.type === 'heading' && node.depth === 1) {
-      const content = extractSpeakerNotes(node)
+      const content = extractBoardComments(node)
       currentPage = createPage(node, headingText(content.node as Heading))
-      if (content.notes) currentPage.notes = [currentPage.notes, content.notes].filter(Boolean).join('\n\n')
+      attachBoardComments(currentPage, content)
       currentColumn = undefined
       document.pages.push(currentPage)
       notesTarget = currentPage
@@ -201,14 +196,14 @@ export function compileMarkdown(source: string): BoardDocument {
     }
 
     if (node.type === 'heading' && node.depth === 2) {
-      const content = extractSpeakerNotes(node)
+      const content = extractBoardComments(node)
       if (!currentPage) {
         currentPage = createPage(node, '')
         document.pages.push(currentPage)
       }
 
       currentColumn = { id: nodeId(node, '-column'), title: headingText(content.node as Heading), blocks: [] }
-      if (content.notes) currentColumn.notes = content.notes
+      attachBoardComments(currentColumn, content)
       currentPage.columns.push(currentColumn)
       notesTarget = currentColumn
       continue
@@ -228,10 +223,13 @@ export function compileMarkdown(source: string): BoardDocument {
   if (definitions) {
     for (const page of document.pages) {
       if (page.notes) page.notes += `\n\n${definitions}`
+      if (page.explanation) page.explanation += `\n\n${definitions}`
       for (const column of page.columns) {
         if (column.notes) column.notes += `\n\n${definitions}`
+        if (column.explanation) column.explanation += `\n\n${definitions}`
         for (const block of column.blocks) {
           if (block.notes) block.notes += `\n\n${definitions}`
+          if (block.explanation) block.explanation += `\n\n${definitions}`
         }
       }
     }
