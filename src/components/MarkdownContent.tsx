@@ -5,6 +5,7 @@ import type { Components, UrlTransform } from 'react-markdown'
 import remarkDirective from 'remark-directive'
 import remarkGfm from 'remark-gfm'
 import { remarkDecorations } from '../lib/directives'
+import MarkdownTable from './MarkdownTable'
 
 function BoardImage({ src, alt, ...props }: ComponentProps<'img'>) {
   return (
@@ -37,6 +38,7 @@ const components: Components = {
     ? <div className="image-paragraph" {...props}>{children}</div>
     : <p {...props}>{children}</p>,
   img: ({ node: _node, ...props }) => <BoardImage {...props} />,
+  table: ({ node: _node, ...props }) => <MarkdownTable {...props} />,
   span: ({ node: _node, className, children, ...props }) => (
     <span {...props} className={className} onAnimationEnd={className?.includes('board-circle') ? finishCircle : undefined}>
       {children}
