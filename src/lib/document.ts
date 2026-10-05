@@ -3,6 +3,7 @@ export interface InitialDocument {
   assetBase: string
   fileName: string
   documentId: string
+  notes?: { source: string; fileName: string }
 }
 
 export async function loadInitialDocument(): Promise<InitialDocument | undefined> {
@@ -15,6 +16,10 @@ export async function loadInitialDocument(): Promise<InitialDocument | undefined
   if (typeof value.source !== 'string' || typeof value.assetBase !== 'string'
     || typeof value.fileName !== 'string' || typeof value.documentId !== 'string') {
     throw new Error('Markdown 文件信息不完整。')
+  }
+  if (value.notes !== undefined && (!value.notes || typeof value.notes !== 'object'
+    || typeof value.notes.source !== 'string' || typeof value.notes.fileName !== 'string')) {
+    throw new Error('口播稿文件信息不完整。')
   }
   return value as InitialDocument
 }

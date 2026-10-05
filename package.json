@@ -12,13 +12,15 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "start": "node bin/coach.mjs"
+    "start": "node bin/coach.mjs",
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@excalidraw/excalidraw": "0.18.1",
     "@fontsource-variable/noto-sans-sc": "5.3.0",
     "commander": "15.0.0",
     "express": "5.2.1",
+    "hast-util-from-html": "2.0.3",
     "html-to-image": "1.11.13",
     "jspdf": "4.2.1",
     "lucide-react": "1.51.0",

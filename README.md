@@ -159,6 +159,12 @@ npm run build
 npm run preview
 ```
 
+检查注释与展示步骤的对应关系：
+
+```sh
+npm test
+```
+
 前端使用 React、TypeScript 和 Vite；Markdown 解析与渲染使用 remark 和 React Markdown；视口使用 Excalidraw；导出使用 html-to-image 和 jsPDF。本地命令通过 Express 提供网页、Markdown 内容和图片资源。
 
 ## 许可证

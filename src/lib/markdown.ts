@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm'
 import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
 import { unified } from 'unified'
+import { extractSpeakerNotes, readSpeakerComment } from './speaker-comments'
 
 export interface BoardDocument {
   pages: CanvasPage[]
@@ -13,12 +14,14 @@ export interface CanvasPage {
   id: string
   title: string
   columns: CanvasColumn[]
+  notes?: string
 }
 
 export interface CanvasColumn {
   id: string
   title: string
   blocks: CanvasBlock[]
+  notes?: string
 }
 
 export interface CanvasBlock {
@@ -27,6 +30,7 @@ export interface CanvasBlock {
   markdown: string
   order: number
   start?: number
+  notes?: string
 }
 
 const markdownProcessor = unified()
@@ -125,10 +129,19 @@ export function compileMarkdown(source: string): BoardDocument {
   let currentPage: CanvasPage | undefined
   let currentColumn: CanvasColumn | undefined
   let order = 0
+  let notesTarget: { notes?: string } | undefined
+  let introduction = ''
+
+  function createPage(node: RootContent, title: string): CanvasPage {
+    const page: CanvasPage = { id: nodeId(node, '-page'), title, columns: [] }
+    if (introduction) page.notes = introduction
+    introduction = ''
+    return page
+  }
 
   function ensureColumn(node: RootContent): CanvasColumn {
     if (!currentPage) {
-      currentPage = { id: nodeId(node, '-page'), title: '', columns: [] }
+      currentPage = createPage(node, '')
       document.pages.push(currentPage)
     }
 
@@ -141,11 +154,14 @@ export function compileMarkdown(source: string): BoardDocument {
   }
 
   function addBlock(node: RootContent, markdown: string, start?: number, suffix = ''): void {
+    const content = extractSpeakerNotes(node)
+    if (!content.node || (content.node.type === 'paragraph' && content.node.children.length === 0)) return
     const column = ensureColumn(node)
+    const visibleMarkdown = content.changed ? serializeNode(content.node) : markdown
     const block: CanvasBlock = {
       id: nodeId(node, suffix),
       kind: blockKind(node),
-      markdown: definitions ? `${markdown}\n\n${definitions}` : markdown,
+      markdown: definitions ? `${visibleMarkdown}\n\n${definitions}` : visibleMarkdown,
       order: order++,
     }
 
@@ -154,6 +170,8 @@ export function compileMarkdown(source: string): BoardDocument {
     }
 
     column.blocks.push(block)
+    if (content.notes) block.notes = content.notes
+    notesTarget = block
   }
 
   for (const node of root.children) {
@@ -161,21 +179,38 @@ export function compileMarkdown(source: string): BoardDocument {
       continue
     }
 
+    if (node.type === 'html') {
+      const content = readSpeakerComment(node.value)
+      if (content.comment) {
+        if (content.notes) {
+          if (notesTarget) notesTarget.notes = [notesTarget.notes, content.notes].filter(Boolean).join('\n\n')
+          else introduction = [introduction, content.notes].filter(Boolean).join('\n\n')
+        }
+        continue
+      }
+    }
+
     if (node.type === 'heading' && node.depth === 1) {
-      currentPage = { id: nodeId(node, '-page'), title: headingText(node), columns: [] }
+      const content = extractSpeakerNotes(node)
+      currentPage = createPage(node, headingText(content.node as Heading))
+      if (content.notes) currentPage.notes = [currentPage.notes, content.notes].filter(Boolean).join('\n\n')
       currentColumn = undefined
       document.pages.push(currentPage)
+      notesTarget = currentPage
       continue
     }
 
     if (node.type === 'heading' && node.depth === 2) {
+      const content = extractSpeakerNotes(node)
       if (!currentPage) {
-        currentPage = { id: nodeId(node, '-page'), title: '', columns: [] }
+        currentPage = createPage(node, '')
         document.pages.push(currentPage)
       }
 
-      currentColumn = { id: nodeId(node, '-column'), title: headingText(node), blocks: [] }
+      currentColumn = { id: nodeId(node, '-column'), title: headingText(content.node as Heading), blocks: [] }
+      if (content.notes) currentColumn.notes = content.notes
       currentPage.columns.push(currentColumn)
+      notesTarget = currentColumn
       continue
     }
 
@@ -190,5 +225,16 @@ export function compileMarkdown(source: string): BoardDocument {
     addBlock(node, sourceForNode(node, source))
   }
 
+  if (definitions) {
+    for (const page of document.pages) {
+      if (page.notes) page.notes += `\n\n${definitions}`
+      for (const column of page.columns) {
+        if (column.notes) column.notes += `\n\n${definitions}`
+        for (const block of column.blocks) {
+          if (block.notes) block.notes += `\n\n${definitions}`
+        }
+      }
+    }
+  }
   return document
 }
