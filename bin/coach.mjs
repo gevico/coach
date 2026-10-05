@@ -175,13 +175,13 @@ async function listen(app, preferredPort, allowNextPort) {
 }
 
 async function start(fileArgument, options, command) {
-  if (options.zen && options.presenter) throw new Error('禅模式与演讲模式请分别选择。');
+  if ([options.zen, options.presenter, options.explain].filter(Boolean).length > 1) throw new Error('请选择禅模式、演讲模式或解释模式中的一种。');
   const filePath = await loadFile(fileArgument);
   const notesPath = options.notes ? await loadFile(options.notes) : undefined;
   await verifyBuild();
   const recorder = await createMacRecorder(options.recordDir ? { directory: options.recordDir } : {});
   const { server, port } = await listen(createApp(filePath, notesPath, recorder), options.port, command.getOptionValueSource('port') !== 'cli');
-  const url = `http://127.0.0.1:${port}/${options.zen ? '?zen=1' : options.presenter ? '?presenter=1' : ''}`;
+  const url = `http://127.0.0.1:${port}/${options.zen ? '?zen=1' : options.presenter ? '?presenter=1' : options.explain ? '?explain=1' : ''}`;
 
   const stop = async () => {
     await recorder.stop();
@@ -200,7 +200,7 @@ async function start(fileArgument, options, command) {
   console.log(`Markdown：${filePath}`);
   if (notesPath) console.log(`口播稿：${notesPath}`);
   console.log(`画布地址：${url}`);
-  console.log('使用左右方向键逐步展示。按 Ctrl+C 停止服务。');
+  console.log(options.explain ? '使用左右方向键选择内容并阅读解析。按 Ctrl+C 停止服务。' : '使用左右方向键逐步展示。按 Ctrl+C 停止服务。');
 
   if (options.open) {
     try {
@@ -220,10 +220,11 @@ program
   .option('--no-open', '启动服务后保留画布地址，手动打开浏览器')
   .option('--zen', '打开纯画布展示模式')
   .option('--presenter', '打开演讲模式，显示 16:9 画布和口播注释')
+  .option('--explain', '打开解释模式，手动选择板书并阅读对应解析')
   .option('--notes <file.md>', '指定已有的独立 Markdown 口播稿')
   .option('--record-dir <directory>', '指定 Mac 录制视频保存目录，默认 ~/Movies/Coach')
   .helpOption('-h, --help', '显示使用说明')
-  .addHelpText('after', '\n示例：\n  coach ./lesson.md\n  coach ./lesson.md --presenter\n  coach "./演示资料/演示文稿.md" --zen\n  coach ./lesson.md --notes ./notes.md --presenter\n  coach ./lesson.md --port 4300 --no-open\n')
+  .addHelpText('after', '\n示例：\n  coach ./lesson.md\n  coach ./lesson.md --presenter\n  coach ./design.md --explain\n  coach "./演示资料/演示文稿.md" --zen\n  coach ./lesson.md --notes ./notes.md --presenter\n  coach ./lesson.md --port 4300 --no-open\n')
   .action(start);
 
 try {
