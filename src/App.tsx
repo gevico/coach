@@ -12,6 +12,8 @@ import PresenterNotes from './components/PresenterNotes'
 import { compileNarration, narrationFromBoard } from './lib/narration'
 import { usePresenterLayout } from './lib/presenter-layout'
 import { useMacRecording } from './lib/recording'
+import CourseOutline from './components/CourseOutline'
+import { outlineFromBoard } from './lib/outline'
 
 const STORAGE_KEY = 'coach-markdown-v1'
 const COLUMN_WIDTH = 470
@@ -42,7 +44,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   const [editorOpen, setEditorOpen] = useState(false)
   const [pageIndex, setPageIndex] = useState(0)
   const [scale, setScale] = useState(BASE_ZOOM)
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(() => outlineFromBoard(compileMarkdown(source)).length ? 0 : 1)
   const [showAll, setShowAll] = useState(false)
   const [followContent, setFollowContent] = useState(true)
   const [zenMode, setZenMode] = useState(() => new URLSearchParams(window.location.search).get('zen') === '1'
@@ -69,13 +71,17 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   const assetBase = new URL(initialDocument?.assetBase ?? '/', window.location.origin).href
 
   const document = useMemo(() => compileMarkdown(renderedSource), [renderedSource])
+  const outline = useMemo(() => outlineFromBoard(document), [document])
+  const hasOutline = pageIndex === 0 && outline.length > 0
   const page = document.pages[Math.min(pageIndex, document.pages.length - 1)]
   const columns = page?.columns.length || 1
-  const boardWidth = BOARD_PADDING * 2 + columns * COLUMN_WIDTH + (columns - 1) * COLUMN_GAP
+  const layoutColumns = columns + (hasOutline ? 1 : 0)
+  const boardWidth = BOARD_PADDING * 2 + layoutColumns * COLUMN_WIDTH + (layoutColumns - 1) * COLUMN_GAP
   const blockCount = page?.columns.reduce((count, column) => count + column.blocks.length, 0) || 0
   const total = blockCount + (page?.columns.filter((column) => column.title).length || 0)
   const visibleCount = showAll ? total : Math.min(step, total)
-  const focusIndex = !showAll && followContent && visibleCount > 0 ? visibleCount - 1 : null
+  const opening = hasOutline && !showAll && visibleCount === 0
+  const focusIndex = showAll || !followContent ? null : opening ? 0 : visibleCount > 0 ? visibleCount - 1 + (hasOutline ? 1 : 0) : null
   const sourceKey = `${page?.id}-${revision}`
   const presenterActive = presenterMode && !zenMode
   const recording = useMacRecording()
@@ -93,7 +99,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
       if (source !== renderedSource) {
         setRenderedSource(source)
         setPageIndex(0)
-        setStep(1)
+        setStep(outlineFromBoard(compileMarkdown(source)).length ? 0 : 1)
         setRevision((value) => value + 1)
       }
       try { localStorage.setItem(storageKey, source) } catch { setMessage('浏览器存储空间不足，请下载 Markdown 保存内容。') }
@@ -123,7 +129,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
 
   function changePage(index: number, last = false) {
     setPageIndex(index)
-    setStep(last ? pageSteps[index] : 1)
+    setStep(last ? pageSteps[index] : index === 0 && outline.length > 0 ? 0 : 1)
     setShowAll(false)
   }
 
@@ -301,9 +307,9 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
         <div className="document-name"><h1>{page?.title || initialDocument?.fileName || '我的画布'}</h1><span className="document-meta">{columns} 个栏目 · {blockCount} 个内容块</span></div>
         <div className="header-actions">
           <div className="reveal-controls">
-            <div className="step-navigation"><button className="step-button" aria-label="上一个内容块" aria-description="上一个内容块（←）" disabled={visibleCount === 0} onClick={previousStep}><ChevronLeft size={18} /></button><span className="step-count">{visibleCount}<span> / {total}</span></span><button className="step-button" aria-label="下一个内容块" aria-description="下一个内容块（→）" disabled={visibleCount >= total && (!presenterActive || pageIndex >= document.pages.length - 1)} onClick={nextStep}><ChevronRight size={18} /></button></div>
+            <div className="step-navigation"><button className="step-button" aria-label="上一个内容块" aria-description="上一个内容块（←）" disabled={visibleCount === 0} onClick={previousStep}><ChevronLeft size={18} /></button><span className="step-count">{opening ? '大纲' : visibleCount}<span> / {total}</span></span><button className="step-button" aria-label="下一个内容块" aria-description="下一个内容块（→）" disabled={visibleCount >= total && (!presenterActive || pageIndex >= document.pages.length - 1)} onClick={nextStep}><ChevronRight size={18} /></button></div>
             <button className={`ui-icon-button ${showAll ? 'is-active' : ''}`} aria-label="全部显示" data-tooltip="全部显示" aria-pressed={showAll} onClick={() => setShowAll(true)}><Eye size={18} /></button>
-            <button className="ui-icon-button" aria-label="从头展示" data-tooltip="从头展示" onClick={() => { setShowAll(false); setStep(1); cameraRef.current?.reset() }}><RotateCcw size={18} /></button>
+            <button className="ui-icon-button" aria-label="从头展示" data-tooltip="从头展示" onClick={() => { setShowAll(false); setStep(hasOutline ? 0 : 1); cameraRef.current?.reset() }}><RotateCcw size={18} /></button>
           </div>
           <div className="zoom-control"><button aria-label="缩小画布" onClick={() => cameraRef.current?.zoomOut()}><Minus size={16} strokeWidth={2.25} /></button><button className="zoom-value" aria-label="重置缩放" aria-description="重置缩放到 100%" onClick={() => cameraRef.current?.reset()}>{Math.round(scale / BASE_ZOOM * 100)}%</button><button aria-label="放大画布" onClick={() => cameraRef.current?.zoomIn()}><Plus size={16} strokeWidth={2.25} /></button><span /><button aria-label="适应窗口" aria-description="适应窗口" onClick={() => cameraRef.current?.fit()}><Maximize2 size={16} /></button></div>
           <button className={`ui-icon-button follow-button ${followContent ? 'is-active' : ''}`} aria-label="标准跟踪" data-tooltip="标准跟踪" aria-pressed={followContent} onClick={() => setFollowContent(!followContent)}><Scan size={18} /></button>
@@ -336,8 +342,12 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
         <section id="coach-recording-canvas" className="canvas-area" aria-label={presenterActive ? '录制画布（16:9）' : '画布预览'}>
           <div className="canvas-stage">
             {page ? <CameraCanvas width={boardWidth} height={boardHeight} ready={ready} overview={showAll} focusIndex={focusIndex} cameraRef={cameraRef} onZoomChange={setScale}>
-              <article key={sourceKey} ref={boardRef} className="canvas-board" data-ready={ready} aria-label={page.title || 'Markdown 画布'} style={{ width: boardWidth, '--column-count': columns } as CSSProperties}>
+              <article key={sourceKey} ref={boardRef} className="canvas-board" data-ready={ready} aria-label={page.title || 'Markdown 画布'} style={{ width: boardWidth, '--column-count': layoutColumns } as CSSProperties}>
                 <div className="board-columns">
+                  {hasOutline && <section className="board-column board-outline" aria-label="课程大纲" data-reveal data-visible="true">
+                    <h2 className="column-heading"><span>课程大纲</span></h2>
+                    <CourseOutline sections={outline} />
+                  </section>}
                   {page.columns.map((column, columnIndex) => <section className="board-column" key={column.id} aria-label={column.title || `栏目 ${columnIndex + 1}`}>
                     {column.title && <h2 className="column-heading" data-reveal {...revealAttributes()}><span>{column.title}</span></h2>}
                     {column.blocks.map((block) => <div className={`content-block block-${block.kind}`} key={block.id} data-reveal {...revealAttributes()}>
@@ -349,7 +359,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
             </CameraCanvas> : <div className="empty-canvas"><BookOpen size={34} strokeWidth={1.2} /><h2>从一段 Markdown 开始</h2><button className="button button-dark" onClick={() => setEditorOpen(true)}><Code2 size={15} />编写内容</button></div>}
           </div>
         </section>
-        {presenterActive && <PresenterNotes document={narration} fileName={embedded ? initialDocument?.fileName || '当前 Markdown' : notesFileName} step={narrationStep} total={narrationTotal} embedded={embedded} hasCurrent={visibleCount > 0} onImport={() => notesFileRef.current?.click()} recording={recording} />}
+        {presenterActive && <PresenterNotes document={narration} fileName={embedded ? initialDocument?.fileName || '当前 Markdown' : notesFileName} step={narrationStep} total={narrationTotal} embedded={embedded} hasCurrent={visibleCount > 0} opening={opening} showIntroduction={!hasOutline || opening} onImport={() => notesFileRef.current?.click()} recording={recording} />}
       </main>
 
       {message && <div className="toast" role="status">{message}</div>}

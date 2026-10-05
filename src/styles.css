@@ -59,6 +59,22 @@ button { color: inherit; }
 .canvas-board { padding: 48px 56px 64px; background: transparent; position: relative; font-size: 21px; line-height: 1.68; }
 .board-columns { display: grid; grid-template-columns: repeat(var(--column-count), 470px); gap: 32px; align-items: start; }
 .board-column { min-width: 0; }
+.outline-tree { position: relative; padding: 10px 3px 3px; }
+.outline-connections { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.outline-connections path { fill: none; stroke: #9586b5; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.outline-section { position: relative; }
+.outline-section + .outline-section { margin-top: 28px; }
+.outline-parent, .outline-child { position: relative; background: #fcfcfc; border-radius: 6px; padding: 13px 16px; overflow-wrap: anywhere; font-size: 21px; line-height: 1.6; }
+.outline-parent { color: #6741d9; font-weight: 500; }
+.outline-parent span { background: linear-gradient(transparent 62%, #fef3c7c7 62%, #fef3c7c7 96%, transparent 96%); padding: 0 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.outline-parent::before, .outline-child::before { content: ''; position: absolute; inset: 0; pointer-events: none; border: 1.7px solid #a38cce; border-radius: 6px; filter: var(--outline-filter); }
+.outline-child::before { border-color: #d4cbdf; border-width: 1.4px; }
+.outline-children { list-style: none; padding: 0 0 0 42px; margin: 18px 0 0; }
+.outline-children.without-parent { padding-left: 0; margin-top: 0; }
+.outline-child + .outline-child { margin-top: 16px; }
+.canvas-board[data-ready='true'] .outline-connections path { animation: outline-line-draw 1.4s ease both; animation-delay: .3s; }
+.outline-tree[data-drawn='true'] .outline-connections path, [data-export='true'] .outline-connections path { animation: none !important; stroke-dashoffset: 0 !important; stroke-dasharray: none !important; }
+@keyframes outline-line-draw { to { stroke-dashoffset: 0; } }
 .column-heading { text-align: center; font-size: 26px; font-weight: 500; margin: 0 0 12px; line-height: 1.5; color: #6741d9; }
 .column-heading span, .content-block h3 { background: linear-gradient(transparent 60%, #fef3c7c7 60%, #fef3c7c7 95%, transparent 95%); padding: 0 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .content-block { margin-top: 11px; overflow-wrap: anywhere; }
@@ -211,6 +227,7 @@ button { color: inherit; }
 .mac-open-recording { display: flex; align-items: center; gap: 6px; margin-top: 9px; border: 0; padding: 0; background: transparent; color: #525252; font-size: 11px; }
 @media (prefers-reduced-motion: reduce) { .canvas-board[data-ready='true'] [data-reveal][data-visible='true'] { animation: none; opacity: 1; } .canvas-board .board-highlight { animation: none !important; background-size: 100% 100%; } .canvas-board .circle-decoration ellipse { animation: none !important; stroke-dashoffset: 0; stroke-dasharray: none; } }
 @media (prefers-reduced-motion: reduce) { .canvas-board .board-table table::before { animation: none !important; clip-path: none !important; } }
+@media (prefers-reduced-motion: reduce) { .canvas-board .outline-connections path { animation: none !important; stroke-dashoffset: 0; stroke-dasharray: none; } }
 @media (max-width: 1450px) { .app-header { padding: 12px 16px; gap: 12px; } .document-name { max-width: 300px; } .header-actions, .reveal-controls { gap: 8px; } }
 @media (max-width: 1100px) { .app-header { flex-wrap: wrap; } .document-name { max-width: none; } .header-actions { flex: 1 1 100%; justify-content: flex-end; flex-wrap: wrap; } .editor-panel { width: 325px; } }
 @media (max-width: 700px) { .app-header { padding: 10px 12px; gap: 10px; } .brand { font-size: 22px; } .document-name h1 { font-size: 12px; } .header-actions { gap: 7px; justify-content: flex-start; } .reveal-controls { gap: 7px; } .editor-panel { position: absolute; z-index: 20; top: 120px; bottom: 0; width: min(100%, 370px); box-shadow: 15px 0 40px #0000000f; } }
