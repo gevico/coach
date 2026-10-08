@@ -2,6 +2,73 @@ import AppKit
 import ApplicationServices
 import Foundation
 import AVFoundation
+import MediaToolbox
+import Accelerate
+
+final class MicrophoneGainState {
+    let gain: Float
+    var supported = false
+    var processedSamples: Int64 = 0
+    var error: OSStatus = noErr
+
+    init(gain: Float) { self.gain = gain }
+}
+
+func microphoneAudioMix(tracks: [AVAssetTrack], gain: Float) throws -> (AVAudioMix, [MicrophoneGainState]) {
+    let mix = AVMutableAudioMix()
+    var states: [MicrophoneGainState] = []
+    var parameters: [AVAudioMixInputParameters] = []
+    for track in tracks {
+        let state = MicrophoneGainState(gain: gain)
+        let retained = Unmanaged.passRetained(state)
+        var callbacks = MTAudioProcessingTapCallbacks(
+            version: kMTAudioProcessingTapCallbacksVersion_0,
+            clientInfo: retained.toOpaque(),
+            init: { _, info, storage in storage.pointee = info },
+            finalize: { tap in
+                Unmanaged<MicrophoneGainState>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).release()
+            },
+            prepare: { tap, _, format in
+                let state = Unmanaged<MicrophoneGainState>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue()
+                state.supported = format.pointee.mFormatID == kAudioFormatLinearPCM
+                    && format.pointee.mFormatFlags & kAudioFormatFlagIsFloat != 0
+                    && format.pointee.mBitsPerChannel == 32
+            },
+            unprepare: nil,
+            process: { tap, frames, _, buffers, framesOut, flagsOut in
+                let state = Unmanaged<MicrophoneGainState>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue()
+                let status = MTAudioProcessingTapGetSourceAudio(tap, frames, buffers, flagsOut, nil, framesOut)
+                guard status == noErr, state.supported else {
+                    state.error = status == noErr ? kAudioFormatUnsupportedDataFormatError : status
+                    return
+                }
+                for buffer in UnsafeMutableAudioBufferListPointer(buffers) {
+                    guard let data = buffer.mData else { continue }
+                    let count = min(Int(buffer.mDataByteSize) / MemoryLayout<Float>.size, Int(framesOut.pointee) * Int(buffer.mNumberChannels))
+                    let samples = data.assumingMemoryBound(to: Float.self)
+                    var gain = state.gain
+                    var minimum: Float = -1
+                    var maximum: Float = 1
+                    vDSP_vsmul(samples, 1, &gain, samples, 1, vDSP_Length(count))
+                    vDSP_vclip(samples, 1, &minimum, &maximum, samples, 1, vDSP_Length(count))
+                    state.processedSamples += Int64(count)
+                }
+            }
+        )
+        var tap: MTAudioProcessingTap?
+        let status = MTAudioProcessingTapCreate(kCFAllocatorDefault, &callbacks, kMTAudioProcessingTapCreationFlag_PostEffects, &tap)
+        guard status == noErr, let tap else {
+            retained.release()
+            throw NSError(domain: "Coach", code: Int(status), userInfo: [NSLocalizedDescriptionKey: "无法准备麦克风音轨增益。"])
+        }
+        let input = AVMutableAudioMixInputParameters(track: track)
+        input.audioTapProcessor = tap
+        parameters.append(input)
+        states.append(state)
+    }
+    mix.inputParameters = parameters
+    return (mix, states)
+}
 
 struct CanvasLocation: Codable {
     let x: Double
@@ -138,16 +205,27 @@ struct CoachCanvas {
                 } else { print(String(decoding: data, as: UTF8.self)) }
                 return
             }
-            if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--finalize-video" {
+            if [5, 6].contains(CommandLine.arguments.count) && CommandLine.arguments[1] == "--finalize-video" {
                 let asset = AVURLAsset(url: URL(fileURLWithPath: CommandLine.arguments[2]))
                 let duration = try await asset.load(.duration)
+                let gain = CommandLine.arguments.count == 6 ? Float(CommandLine.arguments[5]) : 1
                 guard let seconds = Double(CommandLine.arguments[4]), seconds.isFinite, seconds >= 0,
+                      let gain, [Float(1), Float(2)].contains(gain),
                       duration.seconds > seconds,
                       let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
                     throw NSError(domain: "Coach", code: 5, userInfo: [NSLocalizedDescriptionKey: "准备结束后的录制时间过短，没有可以保存的视频内容。"])
                 }
                 let start = CMTime(seconds: seconds, preferredTimescale: 600)
                 exporter.timeRange = CMTimeRange(start: start, duration: CMTimeSubtract(duration, start))
+                var gainStates: [MicrophoneGainState] = []
+                if gain > 1 {
+                    let tracks = try await asset.loadTracks(withMediaType: .audio)
+                    if !tracks.isEmpty {
+                        let (mix, states) = try microphoneAudioMix(tracks: tracks, gain: gain)
+                        exporter.audioMix = mix
+                        gainStates = states
+                    }
+                }
                 let destination = URL(fileURLWithPath: CommandLine.arguments[3])
                 if #available(macOS 15.0, *) {
                     try await exporter.export(to: destination, as: .mov)
@@ -161,7 +239,10 @@ struct CoachCanvas {
                         throw exporter.error ?? NSError(domain: "Coach", code: 6, userInfo: [NSLocalizedDescriptionKey: "无法保存录制视频。"])
                     }
                 }
-                let data = try JSONSerialization.data(withJSONObject: ["sourceDuration": duration.seconds, "removedSeconds": seconds])
+                guard gainStates.allSatisfy({ $0.error == noErr && $0.processedSamples > 0 }) else {
+                    throw NSError(domain: "Coach", code: 7, userInfo: [NSLocalizedDescriptionKey: "无法处理麦克风音轨增益，请保留原始录制文件。"])
+                }
+                let data = try JSONSerialization.data(withJSONObject: ["sourceDuration": duration.seconds, "removedSeconds": seconds, "microphoneGain": gainStates.isEmpty ? 1 : gain])
                 print(String(decoding: data, as: UTF8.self))
                 return
             }

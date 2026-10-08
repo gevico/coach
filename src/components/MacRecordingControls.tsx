@@ -15,7 +15,7 @@ export default function MacRecordingControls({ recording }: { recording: MacReco
       <button className={`mac-record-button ${state.status === 'recording' ? 'is-recording' : ''}`} disabled={settingsBusy || state.status === 'preparing' || state.status === 'stopping'} onClick={() => void (busy ? recording.stop() : recording.start())} aria-description={busy ? '停止当前录制' : '自动定位画布，准备 5 秒；成片自动移除准备画面和音频'}>
         {state.status === 'recording' ? <Square size={14} /> : state.status === 'countdown' ? <X size={16} /> : <Circle size={14} />}<span>{label}</span>
       </button>
-      <label className={`mac-microphone ${recording.microphone ? 'is-active' : ''}`}><input className="sr-only" type="checkbox" checked={recording.microphone} disabled={busy || settingsBusy} onChange={(event) => recording.setMicrophone(event.target.checked)} /><Mic size={16} /><span>麦克风</span></label>
+      <label className={`mac-microphone ${recording.microphone ? 'is-active' : ''}`} title="麦克风音轨增益 2×（约 +6 dB），保存时应用"><input className="sr-only" type="checkbox" checked={recording.microphone} disabled={busy || settingsBusy} onChange={(event) => recording.setMicrophone(event.target.checked)} /><Mic size={16} /><span>麦克风 ×2</span></label>
       <button className="mac-directory-toggle" aria-label="录像保存设置" aria-expanded={settingsOpen} disabled={busy || settingsBusy} onClick={() => { setDirectory(state.directory || ''); setSettingsOpen(!settingsOpen) }}><Settings size={18} /></button>
     </div>
     {state.directory && <div className="mac-directory-location"><span>保存至</span><span className="mac-directory-path">{state.directory}</span><button aria-label="打开录像保存文件夹" disabled={busy || settingsBusy} onClick={() => void recording.openDirectory()}><FolderOpen size={13} /></button></div>}

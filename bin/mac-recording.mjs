@@ -153,7 +153,7 @@ export async function createMacRecorder({ directory: initialDirectory } = {}) {
       try {
         update({ status: 'stopping' });
         const executable = await helper();
-        const finalized = await run(executable, ['--finalize-video', capture, movie, '5'], { timeout: 3600000 });
+        const finalized = await run(executable, ['--finalize-video', capture, movie, '5', state.microphone ? '2' : '1'], { timeout: 3600000 });
         const { stdout } = await run(executable, ['--inspect-video', movie], { timeout: 15000 });
         const metadata = { ...JSON.parse(stdout), ...JSON.parse(finalized.stdout) };
         if (state.microphone && metadata.audioTracks < 1) throw new Error('录制文件没有麦克风音轨，请检查麦克风权限和默认输入设备。');
