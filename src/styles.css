@@ -78,7 +78,7 @@ button { color: inherit; }
 .outline-tree[data-drawn='true'] .outline-connections path, [data-export='true'] .outline-connections path { animation: none !important; stroke-dashoffset: 0 !important; stroke-dasharray: none !important; }
 @keyframes outline-line-draw { to { stroke-dashoffset: 0; } }
 .column-heading { text-align: center; font-size: 26px; font-weight: 500; margin: 0 0 12px; line-height: 1.5; color: #6741d9; }
-.column-heading span, .content-block h3 { background: linear-gradient(transparent 60%, #fef3c7c7 60%, #fef3c7c7 95%, transparent 95%); padding: 0 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.column-heading span, .content-block h3 > .heading-text { background: linear-gradient(transparent 60%, #fef3c7c7 60%, #fef3c7c7 95%, transparent 95%); padding: 0 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .content-block { margin-top: 11px; overflow-wrap: anywhere; }
 .content-block p { margin: 0; }
 .content-block strong { font-weight: 700; }

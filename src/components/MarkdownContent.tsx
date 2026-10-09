@@ -34,6 +34,7 @@ function finishHighlight(event: AnimationEvent<HTMLElement>) {
 }
 
 const components: Components = {
+  h3: ({ node: _node, children, ...props }) => <h3 {...props}><span className="heading-text">{children}</span></h3>,
   p: ({ node, children, ...props }) => node?.children.some((child) => child.type === 'element' && child.tagName === 'img')
     ? <div className="image-paragraph" {...props}>{children}</div>
     : <p {...props}>{children}</p>,
