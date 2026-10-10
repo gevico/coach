@@ -40,7 +40,7 @@ export default function PresenterNotes({ document, fileName, step, total, embedd
   return <>
     <aside className="presenter-notes" aria-label="当前口播稿">
       <div className="presenter-notes-heading">
-        <div><span className="presenter-eyebrow">当前口播</span><h2>{opening ? '课程大纲' : !hasCurrent ? '开场' : current?.title || `第 ${step} 项`}</h2></div>
+        <div><span className="presenter-eyebrow">当前口播</span><h2>{opening ? '前言' : !hasCurrent ? '开场' : current?.title || `第 ${step} 项`}</h2></div>
         <span className="presenter-progress">{opening ? '开场' : `${step} / ${total}`}</span>
       </div>
       <div className="presenter-notes-tools">
@@ -61,7 +61,7 @@ export default function PresenterNotes({ document, fileName, step, total, embedd
           {!fileName && <p><code>{'<!-- speaker: 这里写口播内容 -->'}</code></p>}
         </div>}
       </div>
-      <div className="presenter-cue">{step >= total && !opening ? <Check size={14} /> : <ArrowRight size={14} />}<span>{opening ? '介绍完大纲，按 → 展示第一部分。' : current?.cue || (step < total ? '说完，按 → 展示下一部分。' : '口播结束，保持当前画面。')}</span></div>
+      <div className="presenter-cue">{step >= total && !opening ? <Check size={14} /> : <ArrowRight size={14} />}<span>{opening ? '讲完前言，按 → 展示第一部分。' : current?.cue || (step < total ? '说完，按 → 展示下一部分。' : '口播结束，保持当前画面。')}</span></div>
     </aside>
     <section className="presenter-next" aria-label="下一步口播提示">
       <div className="presenter-next-heading"><div><span className="presenter-next-icon"><ArrowRight size={16} /></span><span className="presenter-eyebrow">下一步</span><h2>{next?.title || (step >= total ? '本节讲解结束' : `第 ${step + 1} 项`)}</h2></div></div>

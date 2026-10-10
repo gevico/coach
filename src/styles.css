@@ -61,6 +61,12 @@ button { color: inherit; }
 .canvas-board { padding: 48px 56px 64px; background: transparent; position: relative; font-size: 21px; line-height: 1.68; }
 .board-columns { display: grid; grid-template-columns: repeat(var(--column-count), 470px); gap: 32px; align-items: start; }
 .board-column { min-width: 0; }
+.board-introduction { padding: 10px 0; color: #262626; }
+.board-introduction h1 { margin: 0 0 16px; font-size: 26px; font-weight: 700; line-height: 1.5; }
+.board-introduction .introduction-body { margin: 0; font-size: 21px; line-height: 1.7; }
+.board-introduction .introduction-body p { margin: 0 0 12px; }
+.board-introduction .introduction-body ul, .board-introduction .introduction-body ol { list-style: none; margin: 0; padding-left: 26px; }
+.board-introduction .introduction-body li { margin-bottom: 12px; }
 .outline-tree { position: relative; padding: 10px 3px 3px; }
 .outline-connections { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .outline-connections path { fill: none; stroke: #9586b5; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }

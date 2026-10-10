@@ -12,7 +12,7 @@ import PresenterNotes from './components/PresenterNotes'
 import { compileNarration, narrationFromBoard } from './lib/narration'
 import { usePresenterLayout } from './lib/presenter-layout'
 import { useMacRecording } from './lib/recording'
-import CourseOutline from './components/CourseOutline'
+import BoardIntroduction from './components/BoardIntroduction'
 import { outlineFromBoard } from './lib/outline'
 import ExplanationPanel from './components/ExplanationPanel'
 import { buildExplanationPrompt, explanationsFromBoard } from './lib/explanation'
@@ -410,9 +410,9 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
         <div className="document-name"><h1>{page?.title || sourceFileName || '我的画布'}</h1><span className="document-meta">{columns} 个栏目 · {blockCount} 个内容块</span></div>
         <div className="header-actions">
           <div className="reveal-controls">
-            <div className="step-navigation"><button className="step-button" aria-label="上一个内容块" aria-description="上一个内容块（←）" disabled={navigationStep === 0 || (navigationStep <= 1 && !hasOutline && (pageIndex === 0 || (!presenterActive && !explanationActive)))} onClick={previousStep}><ChevronLeft size={18} /></button><span className="step-count">{opening ? '大纲' : navigationStep}<span> / {total}</span></span><button className="step-button" aria-label="下一个内容块" aria-description="下一个内容块（→）" disabled={navigationStep >= total && (!(presenterActive || explanationActive) || pageIndex >= document.pages.length - 1)} onClick={nextStep}><ChevronRight size={18} /></button></div>
+            <div className="step-navigation"><button className="step-button" aria-label="上一个内容块" aria-description="上一个内容块（←）" disabled={navigationStep === 0 || (navigationStep <= 1 && !hasOutline && (pageIndex === 0 || (!presenterActive && !explanationActive)))} onClick={previousStep}><ChevronLeft size={18} /></button><span className="step-count">{opening ? '前言' : navigationStep}<span> / {total}</span></span><button className="step-button" aria-label="下一个内容块" aria-description="下一个内容块（→）" disabled={navigationStep >= total && (!(presenterActive || explanationActive) || pageIndex >= document.pages.length - 1)} onClick={nextStep}><ChevronRight size={18} /></button></div>
             {!explanationActive && <button className={`ui-icon-button ${showAll ? 'is-active' : ''}`} aria-label="全部显示" data-tooltip="全部显示" aria-pressed={showAll} onClick={() => setShowAll(true)}><Eye size={18} /></button>}
-            <button className="ui-icon-button" aria-label={explanationActive ? outline.length ? '返回大纲' : '返回首项' : '从头展示'} data-tooltip={explanationActive ? outline.length ? '返回大纲' : '返回首项' : '从头展示'} onClick={() => { if (explanationActive) selectExplanation(0); else { setShowAll(false); setStep(hasOutline ? 0 : 1); setRevision((value) => value + 1) } cameraRef.current?.reset() }}><RotateCcw size={18} /></button>
+            <button className="ui-icon-button" aria-label={explanationActive ? outline.length ? '返回前言' : '返回首项' : '从头展示'} data-tooltip={explanationActive ? outline.length ? '返回前言' : '返回首项' : '从头展示'} onClick={() => { if (explanationActive) selectExplanation(0); else { setShowAll(false); setStep(hasOutline ? 0 : 1); setRevision((value) => value + 1) } cameraRef.current?.reset() }}><RotateCcw size={18} /></button>
           </div>
           <div className="zoom-control"><button aria-label="缩小画布" onClick={() => cameraRef.current?.zoomOut()}><Minus size={16} strokeWidth={2.25} /></button><button className="zoom-value" aria-label="重置缩放" aria-description="重置缩放到 100%" onClick={() => cameraRef.current?.reset()}>{Math.round(scale / BASE_ZOOM * 100)}%</button><button aria-label="放大画布" onClick={() => cameraRef.current?.zoomIn()}><Plus size={16} strokeWidth={2.25} /></button><span /><button aria-label="适应窗口" aria-description="适应窗口" onClick={() => cameraRef.current?.fit()}><Maximize2 size={16} /></button></div>
           <button className={`ui-icon-button follow-button ${followContent ? 'is-active' : ''}`} aria-label="标准跟踪" data-tooltip="标准跟踪" aria-pressed={followContent} onClick={() => setFollowContent(!followContent)}><Scan size={18} /></button>
@@ -448,9 +448,8 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
             {page ? <CameraCanvas width={boardWidth} height={boardHeight} ready={ready} overview={showAll && !explanationMode} focusIndex={focusIndex} cameraRef={cameraRef} onZoomChange={setScale}>
               <article key={sourceKey} ref={boardRef} className="canvas-board" data-ready={ready} aria-label={page.title || 'Markdown 画布'} style={{ width: boardWidth, '--column-count': layoutColumns } as CSSProperties}>
                 <div className="board-columns">
-                  {hasOutline && <section className="board-column board-outline" aria-label={explanationMode ? '内容大纲' : '课程大纲'} data-reveal data-visible="true" data-reading-step="0" data-reading-current={explanationActive && readingStep === 0}>
-                    <h2 className="column-heading"><span>{explanationMode ? '内容大纲' : '课程大纲'}</span></h2>
-                    <CourseOutline sections={outline} />
+                  {hasOutline && <section className="board-column board-opening" aria-label="板书大标题与前言" data-reveal data-visible="true" data-reading-step="0" data-reading-current={explanationActive && readingStep === 0}>
+                    <BoardIntroduction title={page.title} preface={page.preface || page.notes || page.explanation || ''} baseUrl={assetBase} />
                   </section>}
                   {page.columns.map((column, columnIndex) => <section className="board-column" key={column.id} aria-label={column.title || `栏目 ${columnIndex + 1}`}>
                     {column.title && <h2 className="column-heading" data-reveal {...revealAttributes()}><span>{column.title}</span></h2>}

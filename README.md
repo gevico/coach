@@ -10,7 +10,7 @@
   <p><strong>Markdown 编写</strong> &nbsp; / &nbsp; <strong>逐步展示</strong> &nbsp; / &nbsp; <strong>同步口播</strong> &nbsp; / &nbsp; <strong>PDF · SVG 导出</strong></p>
 </div>
 
-![Coach 画布：开场大纲、分栏内容、重点标记、代码和表格](assets/readme/canvas.png)
+![Coach 画布：分栏内容、重点标记、代码和表格](assets/readme/canvas.png)
 
 Coach 将文字、图片、代码和表格排布在同一张画布上。栏目从左向右排列，内容从上向下展开；使用方向键控制进度，摄像头自动跟随当前内容。
 
@@ -35,6 +35,8 @@ coach design.md --explain
 ```
 
 命令会启动本地服务并打开浏览器。使用 `Ctrl+C` 停止服务；也可以通过 `npm start -- lesson.md` 启动。
+
+开场默认显示板书大标题与前言，按右方向键进入正文。
 
 ## 编写内容
 
@@ -103,7 +105,7 @@ coach lesson.md --presenter
 
 </details>
 
-`#` 设置课程名称，`##` 创建栏目，`###` 创建板块。一级、二级标题自动生成开场大纲。段落、顶层列表项、图片、代码块和表格分别构成展示步骤。
+`#` 设置板书大标题，`##` 创建栏目，`###` 创建板块。一级标题后的 `preface:` 注释设置前言正文，支持 Markdown 粗体和列表；未填写时显示开场口播或总体解析。段落、顶层列表项、图片、代码块和表格分别构成展示步骤。
 
 `speaker:` 注释显示在演讲模式的口播区域；注释附在对应内容之后，列表内按所属项目缩进。重点标记支持 `:highlight[高亮]`、`:circle[圈线]` 和 `:shade[底部阴影]`。
 

@@ -222,6 +222,7 @@ export function compileMarkdown(source: string): BoardDocument {
 
   if (definitions) {
     for (const page of document.pages) {
+      if (page.preface) page.preface += `\n\n${definitions}`
       if (page.notes) page.notes += `\n\n${definitions}`
       if (page.explanation) page.explanation += `\n\n${definitions}`
       for (const column of page.columns) {

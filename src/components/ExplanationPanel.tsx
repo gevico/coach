@@ -34,8 +34,8 @@ export default function ExplanationPanel({ document, current, opening, hasOutlin
   useEffect(() => { copyRef.current?.scrollTo({ top: 0 }) }, [current, opening, body])
   return <aside className="explanation-panel" aria-label="内容解析">
     <div className="explanation-heading">
-      <div><span className="presenter-eyebrow">内容解析</span><h2>{opening ? pageTitle || '内容大纲' : item?.title || (current ? `第 ${current} 项` : '内容解析')}</h2></div>
-      <span className="presenter-progress">{opening ? '大纲' : `${current} / ${document.steps.length}`}</span>
+      <div><span className="presenter-eyebrow">内容解析</span><h2>{opening ? pageTitle || '前言' : item?.title || (current ? `第 ${current} 项` : '内容解析')}</h2></div>
+      <span className="presenter-progress">{opening ? '前言' : `${current} / ${document.steps.length}`}</span>
     </div>
     <div className="explanation-tools">
       <button aria-label="复制解析提示词" onClick={onCopy}><Copy size={14} /><span>复制提示词</span></button>
@@ -48,7 +48,7 @@ export default function ExplanationPanel({ document, current, opening, hasOutlin
     </div>
     <label className="sr-only" htmlFor="explanation-selection">选择解析内容</label>
     <select id="explanation-selection" className="explanation-selection" value={opening ? 0 : current} onChange={(event) => onSelect(Number(event.target.value))}>
-      {hasOutline && <option value={0}>内容大纲</option>}
+      {hasOutline && <option value={0}>前言</option>}
       {document.steps.map((step) => <option key={step.number} value={step.number}>{step.number}. {step.title || `第 ${step.number} 项`}</option>)}
     </select>
     <div className="explanation-copy presenter-copy" ref={copyRef} style={{ fontSize }}>
