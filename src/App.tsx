@@ -196,7 +196,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
       return
     }
     if (presenterActive && visibleCount <= 1 && pageIndex > 0) changePage(pageIndex - 1, true)
-    else { setShowAll(false); setStep(Math.max(0, visibleCount - 1)) }
+    else { setShowAll(false); setStep(Math.max(hasOutline ? 0 : 1, visibleCount - 1)) }
   }
 
   function selectExplanation(number: number) {
@@ -410,7 +410,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
         <div className="document-name"><h1>{page?.title || sourceFileName || '我的画布'}</h1><span className="document-meta">{columns} 个栏目 · {blockCount} 个内容块</span></div>
         <div className="header-actions">
           <div className="reveal-controls">
-            <div className="step-navigation"><button className="step-button" aria-label="上一个内容块" aria-description="上一个内容块（←）" disabled={navigationStep === 0 || (explanationActive && navigationStep <= 1 && !hasOutline && pageIndex === 0)} onClick={previousStep}><ChevronLeft size={18} /></button><span className="step-count">{opening ? '大纲' : navigationStep}<span> / {total}</span></span><button className="step-button" aria-label="下一个内容块" aria-description="下一个内容块（→）" disabled={navigationStep >= total && (!(presenterActive || explanationActive) || pageIndex >= document.pages.length - 1)} onClick={nextStep}><ChevronRight size={18} /></button></div>
+            <div className="step-navigation"><button className="step-button" aria-label="上一个内容块" aria-description="上一个内容块（←）" disabled={navigationStep === 0 || (navigationStep <= 1 && !hasOutline && (pageIndex === 0 || (!presenterActive && !explanationActive)))} onClick={previousStep}><ChevronLeft size={18} /></button><span className="step-count">{opening ? '大纲' : navigationStep}<span> / {total}</span></span><button className="step-button" aria-label="下一个内容块" aria-description="下一个内容块（→）" disabled={navigationStep >= total && (!(presenterActive || explanationActive) || pageIndex >= document.pages.length - 1)} onClick={nextStep}><ChevronRight size={18} /></button></div>
             {!explanationActive && <button className={`ui-icon-button ${showAll ? 'is-active' : ''}`} aria-label="全部显示" data-tooltip="全部显示" aria-pressed={showAll} onClick={() => setShowAll(true)}><Eye size={18} /></button>}
             <button className="ui-icon-button" aria-label={explanationActive ? outline.length ? '返回大纲' : '返回首项' : '从头展示'} data-tooltip={explanationActive ? outline.length ? '返回大纲' : '返回首项' : '从头展示'} onClick={() => { if (explanationActive) selectExplanation(0); else { setShowAll(false); setStep(hasOutline ? 0 : 1); setRevision((value) => value + 1) } cameraRef.current?.reset() }}><RotateCcw size={18} /></button>
           </div>
