@@ -40,6 +40,8 @@ coach design.md --explain
 
 ## 编写内容
 
+根据资料生成课程时，可以使用 [course-generation Skill](.agents/skills/course-generation/SKILL.md)。提供信息源、目标人群、学习效果和课程时长，生成板书、同步口播及本地素材，并检查展示步骤与讲述节奏。
+
 一份 Markdown 同时保存板书和口播注释：
 
 <details>
