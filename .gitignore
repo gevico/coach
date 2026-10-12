@@ -1,6 +1,8 @@
 .artifacts/
 node_modules/
 dist/
+build/
+.tools/
 .DS_Store
 public/examples/
 docs/*

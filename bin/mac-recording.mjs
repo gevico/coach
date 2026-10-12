@@ -5,11 +5,11 @@ import { access, copyFile, mkdir, readFile, rename, rm, stat, writeFile } from '
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { fileURLToPath } from 'node:url';
+import { runtimeDirectory } from './runtime-assets.mjs';
 
 const run = promisify(execFile);
 const activeStatuses = new Set(['preparing', 'countdown', 'recording', 'stopping']);
-const helperSource = fileURLToPath(new URL('./mac-canvas.swift', import.meta.url));
+const helperSource = path.join(runtimeDirectory(), 'bin', 'mac-canvas.swift');
 
 export async function createMacRecorder({ directory: initialDirectory } = {}) {
   const defaultDirectory = path.join(homedir(), 'Movies', 'Coach');

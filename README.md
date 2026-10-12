@@ -2,6 +2,7 @@
   <img src="assets/readme/cover.svg" alt="Coach：用 Markdown 编写板书，按照节奏展开讲解" width="100%" />
   <p>
     <a href="#快速开始">快速开始</a> ·
+    <a href="#在-cnb-workspace-中使用">CNB Workspace</a> ·
     <a href="#编写内容">编写内容</a> ·
     <a href="#阅读解析">阅读解析</a> ·
     <a href="#演讲与录制">演讲与录制</a> ·
@@ -39,6 +40,67 @@ coach design.md --explain
 命令会启动本地服务并打开浏览器。使用 `Ctrl+C` 停止服务；也可以通过 `npm start -- lesson.md` 启动。
 
 开场默认显示板书大标题与前言，按右方向键进入正文。
+
+通过 Makefile 安装环境并生成独立可执行文件：
+
+```bash
+make setup
+make binary
+make run FILE=samples/getting-started.md
+make test
+make check
+```
+
+`build/coach` 包含 CLI 与网页资源。环境安装、媒体工具安装和运行参数见[命令文档](docs/cli.md)。[samples/](samples/README.md) 提供文字、表格、代码、SVG 与 GIF 示例。
+
+## 在 CNB Workspace 中使用
+
+打开 [CNB 仓库](https://cnb.cool/gevico.online/coach)，启动云原生开发环境并进入 WebIDE。在终端中进入包含 `Makefile` 的项目根目录，安装环境：
+
+```bash
+make setup
+```
+
+环境需要预装 `make`、Bash、`curl` 和 `tar`。`make setup` 将官方 Node.js 安装到项目的 `.tools/node`，并安装 npm 依赖。
+
+启动示例板书：
+
+```bash
+make run HOST=0.0.0.0 PORT=4173 FILE=samples/getting-started.md
+```
+
+`make run` 构建当前 Linux 环境的 `build/coach`，启动服务并打开演讲模式。保持该终端运行，按 `Ctrl+C` 停止服务。
+
+在 WebIDE 中打开页面：
+
+1. 打开底部的 **PORTS（端口）** 面板。
+2. 添加端口 `4173` 的映射。
+3. 打开面板生成的访问地址。
+4. 在地址后添加 `?presenter=1`，显示画布与同步口播。
+
+CNB 端口预览要求服务监听 `0.0.0.0`，因此启动命令需要填写 `HOST=0.0.0.0`。浏览器使用 PORTS 面板生成的地址；终端显示的 `127.0.0.1` 地址供工作空间内部访问。端口映射方式见 [CNB 业务端口预览文档](https://docs.cnb.cool/zh/workspaces/business-preview.html)。
+
+展示自己的课程时，把 Markdown 和相对路径引用的图片放入工作空间，然后指定文件路径：
+
+```bash
+make run HOST=0.0.0.0 PORT=4173 FILE="public/examples/我的课程.md"
+```
+
+构建完成后，也可以直接运行可执行文件：
+
+```bash
+./build/coach samples/diagrams.md --host 0.0.0.0 --port 4173 --presenter --no-open
+```
+
+CNB 中可以逐步展示板书、阅读口播与解析，并导出 PDF、SVG 和 Markdown。Mac 录制功能需要在 macOS 本地运行。
+
+开发网页界面时启动 Vite：
+
+```bash
+make dev HOST=0.0.0.0 PORT=4173
+```
+
+开发页面通过界面的“导入”按钮选择 Markdown。使用 `make run FILE=...` 可以直接读取指定课程文件。
 
 ## 编写内容
 

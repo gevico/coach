@@ -29,6 +29,7 @@ node bin/coach.mjs ./lesson.md
 | --- | --- |
 | `<file.md>` | 指定需要展示的 Markdown 文件，路径相对于执行命令时的目录 |
 | `--port 4300` | 指定服务端口；指定的端口被占用时显示错误 |
+| `--host 0.0.0.0` | 指定监听地址，默认 `127.0.0.1`；容器端口预览使用 `0.0.0.0` |
 | `--no-open` | 启动服务后手动打开终端中的网页地址 |
 | `--zen` | 直接打开禅模式，只显示画布内容 |
 | `--presenter` | 打开演讲模式，显示 16:9 画布和口播注释 |
@@ -37,11 +38,12 @@ node bin/coach.mjs ./lesson.md
 | `--record-dir <directory>` | 指定 Mac 视频保存目录，默认 `~/Movies/Coach` |
 | `--help` | 显示参数和使用示例 |
 
-默认端口为 `4173`。默认端口被占用时，命令从后续端口中选择可用端口，并在终端显示实际地址。服务只监听本机的 `127.0.0.1`。
+默认端口为 `4173`。默认端口被占用时，命令从后续端口中选择可用端口，并在终端显示实际地址。服务默认监听本机的 `127.0.0.1`，使用 `--host 0.0.0.0` 时监听全部 IPv4 网卡。
 
 ```bash
 coach ./lesson.md --port 4300 --no-open
 coach ./lesson.md --zen
+coach ./lesson.md --host 0.0.0.0 --port 4173 --no-open
 ```
 
 禅模式保留左右方向键和画布手势。按 `F` 切换模式，按 `Esc` 退出；通过顶部按钮或 `F` 进入时请求浏览器全屏。
@@ -49,6 +51,40 @@ coach ./lesson.md --zen
 `--zen`、`--presenter`、`--explain` 每次选择一个参数。打开页面后可以通过工具栏和快捷键切换模式。
 
 默认先显示板书大标题和前言，按右方向键开始第一项内容。
+
+## 构建可执行文件
+
+```bash
+make setup
+make binary
+./build/coach samples/getting-started.md --presenter
+make test
+make check
+```
+
+`make setup` 安装 npm 依赖，并按需将支持构建单文件程序的 Node.js 安装到 `.tools/node`。二进制构建需要 Node.js 25.5 或更新版本；安装脚本默认使用 26.0.0。构建产物 `build/coach` 包含 CLI、网页和字体资源，可以单独复制到相同操作系统与处理器架构的机器运行。课程 Markdown 和课程图片通过文件路径读取。
+
+```bash
+make setup-media
+```
+
+该命令安装 FFmpeg 和 Playwright Chromium，供制作教学动图及浏览器验证使用。macOS 原生录制还需要 Apple Command Line Tools。
+
+## CNB Workspace
+
+在 WebIDE 终端执行：
+
+```bash
+make run HOST=0.0.0.0 PORT=4173 FILE=samples/getting-started.md
+```
+
+在 WebIDE 的端口面板添加 `4173`，打开该端口生成的预览地址。演讲模式可在预览地址后添加 `?presenter=1`。终端中的 `127.0.0.1` 地址用于工作空间内部访问。明确指定端口可以保证服务使用预览配置中的端口。
+
+已有源码安装也可以直接启动：
+
+```bash
+coach samples/getting-started.md --host 0.0.0.0 --port 4173 --presenter --no-open
+```
 
 ## 解释模式
 

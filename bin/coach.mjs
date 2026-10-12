@@ -3,14 +3,14 @@ import { createHash } from 'node:crypto';
 import { readFile, realpath, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { Command, InvalidArgumentError } from 'commander';
 import express from 'express';
 import open from 'open';
 import { createMacRecorder } from './mac-recording.mjs';
 import { recordingRoutes } from './recording-routes.mjs';
+import { runtimeDirectory } from './runtime-assets.mjs';
 
-const packageDirectory = fileURLToPath(new URL('..', import.meta.url));
+const packageDirectory = runtimeDirectory();
 const distDirectory = path.join(packageDirectory, 'dist');
 const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.svg']);
 
@@ -144,7 +144,7 @@ function createApp(filePath, notesPath, recorder) {
   return app;
 }
 
-async function listen(app, preferredPort, allowNextPort) {
+async function listen(app, preferredPort, allowNextPort, host) {
   let port = preferredPort;
   while (port <= 65535) {
     const server = createServer(app);
@@ -160,7 +160,7 @@ async function listen(app, preferredPort, allowNextPort) {
         };
         server.once('error', onError);
         server.once('listening', onListening);
-        server.listen(port, '127.0.0.1');
+        server.listen(port, host);
       });
       return { server, port };
     } catch (error) {
@@ -180,8 +180,10 @@ async function start(fileArgument, options, command) {
   const notesPath = options.notes ? await loadFile(options.notes) : undefined;
   await verifyBuild();
   const recorder = await createMacRecorder(options.recordDir ? { directory: options.recordDir } : {});
-  const { server, port } = await listen(createApp(filePath, notesPath, recorder), options.port, command.getOptionValueSource('port') !== 'cli');
-  const url = `http://127.0.0.1:${port}/${options.zen ? '?zen=1' : options.presenter ? '?presenter=1' : options.explain ? '?explain=1' : ''}`;
+  const { server, port } = await listen(createApp(filePath, notesPath, recorder), options.port, command.getOptionValueSource('port') !== 'cli', options.host);
+  const urlHost = ['0.0.0.0', '::'].includes(options.host) ? '127.0.0.1' : options.host;
+  const address = urlHost.includes(':') ? `[${urlHost}]` : urlHost;
+  const url = `http://${address}:${port}/${options.zen ? '?zen=1' : options.presenter ? '?presenter=1' : options.explain ? '?explain=1' : ''}`;
 
   const stop = async () => {
     await recorder.stop();
@@ -200,6 +202,7 @@ async function start(fileArgument, options, command) {
   console.log(`Markdown：${filePath}`);
   if (notesPath) console.log(`口播稿：${notesPath}`);
   console.log(`画布地址：${url}`);
+  console.log(`监听地址：${options.host}:${port}`);
   console.log(options.explain ? '使用左右方向键选择内容并阅读解析。按 Ctrl+C 停止服务。' : '使用左右方向键逐步展示。按 Ctrl+C 停止服务。');
 
   if (options.open) {
@@ -218,6 +221,7 @@ program
   .argument('<file.md>', 'Markdown 文件路径，支持中文和空格')
   .option('-p, --port <number>', '指定本地服务端口；默认端口占用时自动选择可用端口', parsePort, 4173)
   .option('--no-open', '启动服务后保留画布地址，手动打开浏览器')
+  .option('--host <address>', '监听地址；云端端口预览使用 0.0.0.0', '127.0.0.1')
   .option('--zen', '打开纯画布展示模式')
   .option('--presenter', '打开演讲模式，显示 16:9 画布和口播注释')
   .option('--explain', '打开解释模式，手动选择板书并阅读对应解析')
@@ -227,9 +231,7 @@ program
   .addHelpText('after', '\n示例：\n  coach ./lesson.md\n  coach ./lesson.md --presenter\n  coach ./design.md --explain\n  coach "./演示资料/演示文稿.md" --zen\n  coach ./lesson.md --notes ./notes.md --presenter\n  coach ./lesson.md --port 4300 --no-open\n')
   .action(start);
 
-try {
-  await program.parseAsync();
-} catch (error) {
+program.parseAsync().catch((error) => {
   console.error(`coach: ${error.message}`);
   process.exitCode = 1;
-}
+});
