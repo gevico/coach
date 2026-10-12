@@ -24,7 +24,6 @@ const plugins = [remarkGfm]
 export default function PresenterNotes({ document, fileName, step, total, embedded, hasCurrent, opening = false, showIntroduction = true, onImport, recording }: PresenterNotesProps) {
   const [fontSize, setFontSize] = useState(16)
   const speechRef = useRef<HTMLDivElement>(null)
-  const nextRef = useRef<HTMLDivElement>(null)
   const current = hasCurrent ? document.steps.find((item) => item.number === step) : undefined
   const next = document.steps.find((item) => item.number === step + 1)
   const introduction = showIntroduction ? current?.introduction || (!hasCurrent ? next?.introduction : '') || (step <= 1 ? document.introduction : '') : ''
@@ -34,7 +33,6 @@ export default function PresenterNotes({ document, fileName, step, total, embedd
 
   useEffect(() => {
     speechRef.current?.scrollTo({ top: 0 })
-    nextRef.current?.scrollTo({ top: 0 })
   }, [step, document])
 
   return <>
@@ -63,11 +61,8 @@ export default function PresenterNotes({ document, fileName, step, total, embedd
       </div>
       <div className="presenter-cue">{step >= total && !opening ? <Check size={14} /> : <ArrowRight size={14} />}<span>{opening ? '讲完前言，按 → 展示第一部分。' : current?.cue || (step < total ? '说完，按 → 展示下一部分。' : '口播结束，保持当前画面。')}</span></div>
     </aside>
-    <section className="presenter-next" aria-label="下一步口播提示">
+    <section className="presenter-next" aria-label="下一步展示内容">
       <div className="presenter-next-heading"><div><span className="presenter-next-icon"><ArrowRight size={16} /></span><span className="presenter-eyebrow">下一步</span><h2>{next?.title || (step >= total ? '本节讲解结束' : `第 ${step + 1} 项`)}</h2></div></div>
-      <div className="presenter-copy presenter-next-copy" ref={nextRef}>
-        {next?.speech ? <Markdown skipHtml remarkPlugins={plugins}>{next.speech}</Markdown> : <p>{step >= total ? '保持画面即可结束录制。' : '下一部分展示后，这里的内容会成为当前口播。'}</p>}
-      </div>
     </section>
   </>
 }
