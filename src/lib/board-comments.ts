@@ -14,19 +14,21 @@ export function attachBoardComments(target: BoardComments, content: BoardComment
   }
 }
 
-export function readBoardComment(value: string): BoardComments & { comment: boolean } {
+export function readBoardComment(value: string): BoardComments & { comment: boolean; pageBreak?: boolean } {
   const fragment = fromHtml(value, { fragment: true })
   const comment = fragment.children.length > 0 && fragment.children.every((node) => node.type === 'comment' || (node.type === 'text' && !node.value.trim()))
   if (!comment) return { comment: false }
   const result: BoardComments = {}
+  let pageBreak = false
   for (const node of fragment.children) {
     if (node.type !== 'comment') continue
     const content = node.value.trim()
+    if (content === 'pagebreak') pageBreak = true
     if (content.startsWith('speaker:')) attachBoardComments(result, { notes: content.slice('speaker:'.length).trim() })
     if (content.startsWith('explain:')) attachBoardComments(result, { explanation: content.slice('explain:'.length).trim() })
     if (content.startsWith('preface:')) attachBoardComments(result, { preface: content.slice('preface:'.length).trim() })
   }
-  return { ...result, comment: true }
+  return { ...result, comment: true, ...(pageBreak ? { pageBreak: true } : {}) }
 }
 
 export function extractBoardComments(node: RootContent): BoardComments & { node?: RootContent; changed: boolean } {

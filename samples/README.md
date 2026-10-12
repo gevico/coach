@@ -5,6 +5,7 @@
 | getting-started.md | 前言、列表、高亮、圈画与同步口播 |
 | table-code.md | 表格和多行代码 |
 | diagrams.md | 本地 SVG 与 GIF 动图 |
+| multiple-canvases.md | Markdown 换页与画布切换 |
 
 ```bash
 make run FILE=samples/getting-started.md

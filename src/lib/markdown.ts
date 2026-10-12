@@ -180,6 +180,12 @@ export function compileMarkdown(source: string): BoardDocument {
     if (node.type === 'html') {
       const content = readBoardComment(node.value)
       if (content.comment) {
+        if (content.pageBreak) {
+          currentPage = createPage(node, currentPage?.title || '')
+          document.pages.push(currentPage)
+          currentColumn = undefined
+          notesTarget = currentPage
+        }
         attachBoardComments(notesTarget || introduction, content)
         continue
       }
