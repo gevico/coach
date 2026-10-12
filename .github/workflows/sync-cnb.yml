@@ -1,0 +1,40 @@
+name: Sync to CNB
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-cnb
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check CNB credentials
+        env:
+          CNB_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+        run: |
+          if [ -z "$CNB_PASSWORD" ]; then
+            echo "::error::Repository secret GIT_PASSWORD is required."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync to CNB Repository
+        uses: docker://tencentcom/git-sync
+        env:
+          PLUGIN_TARGET_URL: "https://cnb.cool/gevico.online/coach.git"
+          PLUGIN_AUTH_TYPE: "https"
+          PLUGIN_USERNAME: "cnb"
+          PLUGIN_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+          PLUGIN_FORCE: "true"
+          PLUGIN_PUSH_TAGS: "true"

@@ -14,6 +14,8 @@
 
 Coach 将文字、图片、代码和表格排布在同一张画布上。栏目从左向右排列，内容从上向下展开；使用方向键控制进度，摄像头自动跟随当前内容。
 
+代码镜像：[CNB 仓库](https://cnb.cool/gevico.online/coach)。GitHub Actions 在推送后同步分支和标签，也可以手动运行 `Sync to CNB`。同步使用仓库 Secret `GIT_PASSWORD` 保存 CNB 访问令牌，HTTPS 用户名为 `cnb`；目标仓库按 GitHub 分支内容强制更新。
+
 ## 快速开始
 
 需要 **Node.js ≥ 22.12** 和 npm。
