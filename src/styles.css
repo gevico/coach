@@ -141,11 +141,6 @@ button { color: inherit; }
 [data-export='true'] .circle-decoration ellipse { stroke-dashoffset: 0 !important; stroke-dasharray: none !important; animation: none !important; }
 [data-export='true'] .board-table table::before { animation: none !important; clip-path: none !important; }
 .reveal-controls { display: flex; align-items: center; gap: 10px; }
-.step-navigation { display: inline-flex; align-items: stretch; height: 40px; border-radius: 20px; background: #fff; box-shadow: var(--ui-control-shadow); overflow: hidden; }
-.step-button { width: 34px; height: 40px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; color: #737373; }
-.step-button:hover { background: #f7f7f7; }
-.step-count { display: flex; align-items: center; justify-content: center; min-width: 62px; padding: 0 4px; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; color: #171717; white-space: nowrap; }
-.step-count span { color: #a3a3a3; margin-left: 3px; }
 .syntax-help { font-size: 10px; padding: 12px 22px; border-top: 1px solid #ebe6f0; }
 .syntax-help summary { cursor: pointer; color: #7f6597; display: flex; align-items: center; justify-content: space-between; }
 .syntax-help code { display: block; margin-top: 8px; font-size: 10px; color: #786d83; overflow-wrap: anywhere; }
@@ -154,9 +149,16 @@ button { color: inherit; }
 .zoom-control button:hover { background: #f7f7f7; color: #171717; }
 .zoom-control .zoom-value { min-width: 54px; font-size: 13.5px; font-weight: 500; letter-spacing: .2px; color: #171717; font-variant-numeric: tabular-nums; }
 .zoom-control > span { width: 1px; height: 16px; align-self: center; background: #eee; }
-.page-switch { display: flex; align-items: center; height: 40px; border-radius: 20px; background: #fff; box-shadow: var(--ui-control-shadow); color: #737373; font-size: 12px; overflow: hidden; }
-.page-switch span { padding: 0 5px; white-space: nowrap; }
-.page-switch button { width: 32px; height: 40px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; color: #737373; }
+.page-switch { display: inline-flex; align-items: stretch; height: 40px; border-radius: 20px; background: #fff; box-shadow: var(--ui-control-shadow); user-select: none; flex-shrink: 0; }
+.page-switch-count { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; padding: 0 2px; gap: 3px; font-size: 13.5px; line-height: 1; font-weight: 500; letter-spacing: .2px; color: #8a8a8a; white-space: nowrap; }
+.page-switch-current { color: #171717; }
+.page-switch-separator { color: #c4c4c4; font-weight: 400; }
+.page-switch button { width: 38px; height: 40px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; color: #8a8a8a; transition: background .15s ease, color .15s ease; }
+.page-switch button:first-child { border-radius: 20px 0 0 20px; }
+.page-switch button:last-child { border-radius: 0 20px 20px 0; }
+.page-switch button:hover:not(:disabled) { background: #0000000b; color: #171717; }
+.page-switch button:active:not(:disabled) { background: #00000013; }
+.page-switch button:disabled { color: #cfcfcf; opacity: 1; cursor: default; }
 .empty-canvas { margin: auto; text-align: center; color: #96899f; }
 .empty-canvas h2 { font-size: 21px; color: #625170; font-weight: 500; }
 .toast { position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border: 1px solid var(--ui-border); border-radius: 16px; background: #fff; font-size: 12px; box-shadow: var(--ui-panel-shadow); z-index: 40; max-width: calc(100vw - 40px); }

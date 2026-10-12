@@ -411,7 +411,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
         <div className="document-name"><h1>{page?.title || sourceFileName || '我的画布'}</h1><span className="document-meta">{columns} 个栏目 · {blockCount} 个内容块</span></div>
         <div className="header-actions">
           <div className="reveal-controls">
-            <div className="step-navigation"><button className="step-button" aria-label="上一个内容块" aria-description="上一个内容块（←）" disabled={navigationStep === 0 || (navigationStep <= 1 && !hasOutline && (pageIndex === 0 || (!presenterActive && !explanationActive)))} onClick={previousStep}><ChevronLeft size={18} /></button><span className="step-count">{opening ? '前言' : navigationStep}<span> / {total}</span></span><button className="step-button" aria-label="下一个内容块" aria-description="下一个内容块（→）" disabled={navigationStep >= total && (!(presenterActive || explanationActive) || pageIndex >= document.pages.length - 1)} onClick={nextStep}><ChevronRight size={18} /></button></div>
+            <div className="page-switch" role="group" aria-label="画布换页"><button aria-label="上一张画布" disabled={pageIndex <= 0} onClick={() => changePage(pageIndex - 1)}><ChevronLeft size={18} strokeWidth={2.25} /></button><span className="page-switch-count" aria-live="polite"><span className="page-switch-current">{pageIndex + 1}</span><span className="page-switch-separator">/</span><span>{Math.max(1, document.pages.length)}</span></span><button aria-label="下一张画布" disabled={pageIndex >= document.pages.length - 1} onClick={() => changePage(pageIndex + 1)}><ChevronRight size={18} strokeWidth={2.25} /></button></div>
             {!explanationActive && <button className={`ui-icon-button ${showAll ? 'is-active' : ''}`} aria-label="全部显示" data-tooltip="全部显示" aria-pressed={showAll} onClick={() => setShowAll(true)}><Eye size={18} /></button>}
             <button className="ui-icon-button" aria-label={explanationActive ? outline.length ? '返回前言' : '返回首项' : '从头展示'} data-tooltip={explanationActive ? outline.length ? '返回前言' : '返回首项' : '从头展示'} onClick={() => { if (explanationActive) selectExplanation(0); else { setShowAll(false); setStep(hasOutline ? 0 : 1); setRevision((value) => value + 1) } cameraRef.current?.reset() }}><RotateCcw size={18} /></button>
           </div>
@@ -429,7 +429,6 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
               <button onClick={() => { downloadMarkdown(source, page?.title || '画布'); setExportOpen(false) }}><Code2 size={17} /><span>Markdown</span></button>
             </div>}
           </div>
-          {document.pages.length > 1 && <div className="page-switch"><button aria-label="上一张画布" disabled={pageIndex <= 0} onClick={() => changePage(pageIndex - 1)}><ChevronLeft size={15} /></button><span>{pageIndex + 1} / {document.pages.length}</span><button aria-label="下一张画布" disabled={pageIndex >= document.pages.length - 1} onClick={() => changePage(pageIndex + 1)}><ChevronRight size={15} /></button></div>}
         </div>
       </header>}
 
