@@ -16,6 +16,7 @@ import BoardIntroduction from './components/BoardIntroduction'
 import { outlineFromBoard } from './lib/outline'
 import ExplanationPanel from './components/ExplanationPanel'
 import { buildExplanationPrompt, explanationsFromBoard } from './lib/explanation'
+import coachIcon from '../assets/brand/coach-icon.png'
 
 const STORAGE_KEY = 'coach-markdown-v1'
 const COLUMN_WIDTH = 470
@@ -405,7 +406,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   return (
     <div className={`app-shell ${zenMode ? 'zen-mode' : ''} ${presenterActive ? 'presenter-mode' : ''} ${explanationActive ? 'explanation-mode' : ''}`} data-recording-busy={recording.busy}>
       {!zenMode && <header className="app-header">
-        <a className="brand" href="/" aria-label="Coach 首页"><span className="brand-symbol"><BookOpen size={19} strokeWidth={2} /></span><span>coach</span></a>
+        <a className="brand" href="/" aria-label="Coach 首页"><img className="brand-symbol" src={coachIcon} alt="" /><span>coach</span></a>
         <div className="header-divider" />
         <div className="document-name"><h1>{page?.title || sourceFileName || '我的画布'}</h1><span className="document-meta">{columns} 个栏目 · {blockCount} 个内容块</span></div>
         <div className="header-actions">
