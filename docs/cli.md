@@ -62,7 +62,9 @@ make test
 make check
 ```
 
-`make setup` 安装 npm 依赖，并按需将支持构建单文件程序的 Node.js 安装到 `.tools/node`。二进制构建需要 Node.js 25.5 或更新版本；安装脚本默认使用 26.0.0。构建产物 `build/coach` 包含 CLI、网页和字体资源，可以单独复制到相同操作系统与处理器架构的机器运行。课程 Markdown 和课程图片通过文件路径读取。
+`make setup` 使用已有 Node.js（≥22.12）和 npm 安装项目依赖。缺少这些命令时，安装脚本使用系统包管理器安装。Linux 下遇到缺少 `libatomic.so.1` 时，自动安装 Debian／Ubuntu 的 `libatomic1` 或对应发行版的 `libatomic`。root 用户直接执行系统安装命令，普通用户使用 sudo；安装后再次确认 Node.js 能运行。
+
+`make build` 编译网页，`make run` 使用已有 Node.js 启动课程。`make binary` 将专用 Node.js 构建环境保存到 `.tools/node`；二进制构建需要 Node.js 25.5 或更新版本，安装脚本默认使用 26.0.0。构建产物 `build/coach` 包含 CLI、网页和字体资源，可以单独复制到相同操作系统与处理器架构的机器运行。课程 Markdown 和课程图片通过文件路径读取。`make run-binary` 构建并运行该可执行文件。
 
 ```bash
 make setup-media

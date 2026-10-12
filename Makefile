@@ -1,17 +1,17 @@
 SHELL := /bin/bash
-export PATH := $(CURDIR)/.tools/node/bin:$(PATH)
+export PATH := $(PATH):$(CURDIR)/.tools/node/bin
 export TMPDIR := $(CURDIR)/.artifacts/runtime
-NODE ?= $(CURDIR)/.tools/node/bin/node
-NPM ?= $(NODE) $(CURDIR)/.tools/node/lib/node_modules/npm/bin/npm-cli.js
+NODE ?= node
+NPM ?= npm
 FILE ?= samples/getting-started.md
 HOST ?= 127.0.0.1
 PORT ?= 4173
 
-.PHONY: all help environment setup setup-media build binary test check run dev clean
-all: binary
+.PHONY: all help environment setup setup-media build binary test check run run-binary dev clean
+all: build
 
 help:
-	@printf '%s\n' 'make setup        Install Node and npm dependencies' 'make setup-media  Install FFmpeg and Playwright Chromium' 'make build        Build the web application' 'make binary       Build build/coach for this platform' 'make test         Run project tests' 'make check        Verify the compiled executable' 'make run FILE=... Run build/coach' 'make run HOST=0.0.0.0  Run for CNB WebIDE port preview' 'make dev          Run the development server' 'make clean        Remove generated build output'
+	@printf '%s\n' 'make setup        Use system Node/npm and install dependencies' 'make setup-media  Install FFmpeg and Playwright Chromium' 'make build        Build the web application' 'make binary       Build build/coach with a dedicated Node runtime' 'make test         Run project tests' 'make check        Verify the compiled executable' 'make run FILE=... Run the course with system Node' 'make run HOST=0.0.0.0  Run for CNB WebIDE port preview' 'make run-binary   Build and run build/coach' 'make dev          Run the development server' 'make clean        Remove generated build output'
 
 environment:
 	mkdir -p "$(TMPDIR)"
@@ -31,7 +31,8 @@ build: setup
 	$(NPM) run build
 
 binary: build
-	$(NODE) scripts/build-binary.mjs
+	bash scripts/install-environment.sh --binary
+	./.tools/node/bin/node scripts/build-binary.mjs
 
 test: setup
 	$(NPM) test
@@ -39,7 +40,10 @@ test: setup
 check: binary
 	$(NODE) scripts/check-binary.mjs
 
-run: binary
+run: build
+	$(NODE) bin/coach.mjs "$(FILE)" --host "$(HOST)" --port "$(PORT)" --presenter --no-open
+
+run-binary: binary
 	./build/coach "$(FILE)" --host "$(HOST)" --port "$(PORT)" --presenter --no-open
 
 dev: setup

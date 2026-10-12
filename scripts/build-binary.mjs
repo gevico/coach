@@ -8,7 +8,7 @@ import { build } from 'esbuild';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const output = path.join(root, 'build');
 const [major, minor] = process.versions.node.split('.').map(Number);
-if (major < 25 || (major === 25 && minor < 5)) throw new Error('Run make setup to install Node with --build-sea support.');
+if (major < 25 || (major === 25 && minor < 5)) throw new Error('Run make binary to use the dedicated Node runtime with --build-sea support.');
 await mkdir(output, { recursive: true });
 const assets = { 'dist/index.html': path.join(root, 'dist/index.html'), 'bin/mac-canvas.swift': path.join(root, 'bin/mac-canvas.swift') };
 async function collect(directory) {
