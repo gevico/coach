@@ -125,11 +125,22 @@ button { color: inherit; }
 .canvas-board [data-reveal] { opacity: 0; }
 .canvas-board [data-reveal][data-visible='false'] { pointer-events: none; }
 .canvas-board[data-ready='true'] [data-reveal][data-visible='true'] { animation: content-appear .9s ease-out both; }
-.canvas-board[data-ready='true'] [data-visible='true'] .board-highlight { animation: highlight-appear 1.2s ease-out both; animation-delay: .45s; }
-.canvas-board[data-ready='true'] [data-visible='true'] .circle-decoration ellipse { animation: circle-appear 1.5s ease-out both; animation-delay: .5s; }
+.canvas-board[data-ready='true'] [data-visible='true'] .board-highlight { animation: highlight-appear 1.2s ease-out both; animation-delay: var(--writing-emphasis-delay, .45s); }
+.canvas-board[data-ready='true'] [data-visible='true'] .circle-decoration ellipse { animation: circle-appear 1.5s ease-out both; animation-delay: var(--writing-emphasis-delay, .5s); }
 .canvas-board[data-ready='true'] [data-visible='true'] .board-table table::before { animation: table-frame-draw .62s ease; }
 .board-shade { color: inherit; background: linear-gradient(transparent 62%, #fef3c7c7 62%, #fef3c7c7 96%, transparent 96%); padding: 0 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 @keyframes content-appear { from { opacity: 0; filter: blur(2px); } to { opacity: 1; filter: blur(0); } }
+.canvas-board[data-ready='true'] [data-writing='true'] { animation: none !important; opacity: 1; filter: none; }
+.canvas-board[data-ready='true'] [data-written='true'][data-visible='true'] { animation: none !important; opacity: 1; filter: none; }
+.board-writing-tool { position: absolute; left: 0; top: 0; width: 36px; height: 42px; z-index: 25; pointer-events: none; will-change: transform, opacity; }
+.board-writing-tool[hidden] { display: none; }
+.board-writing-tip { display: block; transform: translate(-1px, -40px); transform-origin: 1px 40px; }
+.board-writing-tool[data-tool='pen'] .board-writing-tip { transform: translate(-1px, -40px) scale(var(--tap-scale, 1)); }
+.board-writing-tool[data-tool='pencil'] .writing-pen, .board-writing-tool[data-tool='pen'] .writing-pencil { display: none; }
+.board-writing-tool i { display: none; position: absolute; left: -12px; top: 28px; width: 26px; height: 26px; border: 2px solid #d6a54780; border-radius: 50%; }
+.board-writing-tool[data-tool='pen'] i { display: block; }
+[data-export='true'] .board-writing-tool { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .board-writing-tool { display: none !important; } }
 @keyframes highlight-appear { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
 @keyframes circle-appear { 99% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; stroke-dasharray: none; } }
 @keyframes table-frame-draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }

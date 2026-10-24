@@ -186,6 +186,7 @@ export async function exportCanvas(
   const clone = node.cloneNode(true) as HTMLElement;
   copyComputedStyles(node, clone);
   clone.dataset.export = 'true';
+  clone.querySelectorAll('.board-writing-tool').forEach((tool) => tool.remove());
   clone.style.setProperty('transform', 'none', 'important');
   clone.style.setProperty('position', 'relative', 'important');
   clone.style.setProperty('width', `${width}px`, 'important');

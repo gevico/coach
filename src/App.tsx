@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ChangeEvent, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { BookOpen, ChevronDown, ChevronLeft, ChevronRight, Code2, Download, Expand, Eye, FileText, ImagePlus, Lightbulb, Maximize2, Minus, Plus, Presentation, RotateCcw, Scan, X } from 'lucide-react'
 import MarkdownContent from './components/MarkdownContent'
+import BoardWritingEffects from './components/BoardWritingEffects'
 import CameraCanvas, { BASE_ZOOM } from './components/CameraCanvas'
 import type { CanvasCamera } from './components/CameraCanvas'
 import { EXAMPLE_MARKDOWN } from './data/example'
@@ -458,6 +459,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
                     </div>)}
                   </section>)}
                 </div>
+                <BoardWritingEffects step={explanationActive ? readingStep : visibleCount} ready={ready} overview={showAll} />
               </article>
             </CameraCanvas> : <div className="empty-canvas"><BookOpen size={34} strokeWidth={1.2} /><h2>从一段 Markdown 开始</h2><button className="button button-dark" onClick={() => setEditorOpen(true)}><Code2 size={15} />编写内容</button></div>}
           </div>
