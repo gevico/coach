@@ -9,8 +9,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid #737373; outline-offs
 button { color: inherit; }
 .app-shell { height: 100dvh; min-height: 500px; display: flex; flex-direction: column; overflow: hidden; }
 .app-header { min-height: 76px; flex-shrink: 0; padding: 14px 20px; display: flex; align-items: center; gap: 14px; background: #fcfcfc; }
-.brand { display: flex; align-items: center; gap: 9px; color: #262626; text-decoration: none; font-size: 24px; font-weight: 700; letter-spacing: -.9px; }
-.brand-symbol { display: block; width: 40px; height: 40px; flex-shrink: 0; object-fit: contain; }
+.brand { display: flex; align-items: center; gap: 8px; color: #262626; text-decoration: none; font-size: 24px; font-weight: 700; letter-spacing: -.8px; }
+.brand-symbol { display: block; width: 36px; height: 36px; flex-shrink: 0; background: var(--ui-accent, #6741d9); mask-size: contain; mask-position: center; mask-repeat: no-repeat; }
 .header-divider { display: none; }
 .document-name { min-width: 0; flex: 1; max-width: 420px; height: 40px; display: flex; flex-direction: column; justify-content: center; padding: 0 16px; border-radius: 14px; background: #fff; box-shadow: var(--ui-control-shadow); }
 .document-name h1 { margin: 0; font-size: 13px; line-height: 18px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

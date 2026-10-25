@@ -17,7 +17,7 @@ import BoardIntroduction from './components/BoardIntroduction'
 import { outlineFromBoard } from './lib/outline'
 import ExplanationPanel from './components/ExplanationPanel'
 import { buildExplanationPrompt, explanationsFromBoard } from './lib/explanation'
-import coachIcon from '../assets/brand/coach-icon.png'
+import coachIcon from '../assets/brand/coach-icon.svg'
 import BoardAppearance from './components/BoardAppearance'
 import BoardEntranceEffects from './components/BoardEntranceEffects'
 import { BlockContext, PresentationContext, loadPresentation, useReducedMotion } from './lib/presentation-context'
@@ -433,7 +433,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
     <PresentationContext.Provider value={{ settings: presentation, paused: effectsPaused || pageHidden, reduced, recording: recording.busy }}>
     <div className={`app-shell ${zenMode ? 'zen-mode' : ''} ${presenterActive ? 'presenter-mode' : ''} ${explanationActive ? 'explanation-mode' : ''}`} data-recording-busy={recording.busy} data-board-theme={presentation.theme}>
       {!zenMode && <header className="app-header">
-        <a className="brand" href="/" aria-label="Coach 首页"><img className="brand-symbol" src={coachIcon} alt="" /><span>coach</span></a>
+        <a className="brand" href="/" aria-label="Coach 首页"><span className="brand-symbol" style={{ maskImage: `url(${coachIcon})` }} aria-hidden="true" /><span>coach</span></a>
         <div className="header-divider" />
         <div className="document-name"><h1>{page?.title || sourceFileName || '我的画布'}</h1><span className="document-meta">{columns} 个栏目 · {blockCount} 个内容块</span></div>
         <div className="header-actions">
