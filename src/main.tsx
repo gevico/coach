@@ -3,6 +3,7 @@ import '@fontsource-variable/noto-sans-sc/index.css'
 import App from './App'
 import { loadInitialDocument } from './lib/document'
 import './styles.css'
+import './presentation.css'
 
 const root = document.getElementById('root')!
 loadInitialDocument().then((initialDocument) => {

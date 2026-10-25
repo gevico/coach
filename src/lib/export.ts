@@ -1,5 +1,6 @@
 import { getFontEmbedCSS, toPng, toSvg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
+import { replacePluginExports } from './plugin-export';
 
 export type CanvasExportFormat = 'pdf' | 'svg';
 
@@ -171,6 +172,7 @@ export async function exportCanvas(
   format: CanvasExportFormat,
   title: string,
 ): Promise<void> {
+  node.dispatchEvent(new Event('coach:before-export'));
   await document.fonts.ready;
   await waitForImages(node);
 
@@ -220,13 +222,14 @@ export async function exportCanvas(
   document.body.append(host);
 
   try {
+    await replacePluginExports(node, clone);
     freezeSVGStyles(clone);
     await embedImages(clone);
     const fontEmbedCSS = await loadedFontCSS(clone);
     const options = {
       width,
       height,
-      backgroundColor: '#fcfcfc',
+      backgroundColor: window.getComputedStyle(node).backgroundColor,
       fontEmbedCSS,
       includeQueryParams: true,
     };

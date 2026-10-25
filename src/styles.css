@@ -115,7 +115,7 @@ button { color: inherit; }
 .content-block input[type='checkbox'] { accent-color: #6741d9; width: 15px; height: 15px; }
 .block-image { margin-top: 18px; }
 .board-figure { margin: 0; }
-.board-figure img { display: block; width: 100%; height: auto; border: 1px solid #e9e7e3; border-radius: 12px; background: #fcfcfc; }
+.board-figure img { display: block; width: 100%; height: auto; }
 .image-error { display: none; font-size: 16px; color: #ad433d; background: #fff1ed; padding: 12px; border-radius: 8px; }
 .board-figure img[data-failed='true'] + .image-error { display: block; }
 .board-highlight { color: inherit; background: linear-gradient(#fef3c79e, #fef3c79e); background-repeat: no-repeat; background-size: 0% 100%; border-radius: 3px; padding: 0 2px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }

@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react'
+import { createContext, memo, useCallback, useContext } from 'react'
 import type { AnimationEvent, ComponentProps } from 'react'
 import Markdown, { defaultUrlTransform } from 'react-markdown'
 import type { Components, UrlTransform } from 'react-markdown'
@@ -6,6 +6,9 @@ import remarkDirective from 'remark-directive'
 import remarkGfm from 'remark-gfm'
 import { remarkDecorations } from '../lib/directives'
 import MarkdownTable from './MarkdownTable'
+import { BoardPluginView, hasBoardPlugin } from './plugins/registry'
+
+const AssetContext = createContext('/')
 
 function BoardImage({ src, alt, ...props }: ComponentProps<'img'>) {
   return (
@@ -34,6 +37,16 @@ function finishHighlight(event: AnimationEvent<HTMLElement>) {
 }
 
 const components: Components = {
+  pre: ({ node, children, ...props }) => {
+    const code = node?.children.find(child => child.type === 'element' && child.tagName === 'code')
+    const language = code?.type === 'element' ? String(code.properties.className || '').replace('language-', '') : ''
+    return hasBoardPlugin(language) ? <>{children}</> : <pre {...props}>{children}</pre>
+  },
+  code: function Code({ node: _node, className, children, ...props }) {
+    const base = useContext(AssetContext)
+    const language = className?.replace('language-', '') || ''
+    return hasBoardPlugin(language) ? <BoardPluginView language={language} source={String(children).trimEnd()} assetBase={base} /> : <code className={className} {...props}>{children}</code>
+  },
   h3: ({ node: _node, children, ...props }) => <h3 {...props}><span className="heading-text">{children}</span></h3>,
   p: ({ node, children, ...props }) => node?.children.some((child) => child.type === 'element' && child.tagName === 'img')
     ? <div className="image-paragraph" {...props}>{children}</div>
@@ -77,7 +90,7 @@ const MarkdownContent = memo(function MarkdownContent({ source, baseUrl }: Markd
     return defaultUrlTransform(resolved)
   }, [baseUrl])
 
-  return <Markdown remarkPlugins={remarkPlugins} urlTransform={urlTransform} components={components}>{source}</Markdown>
+  return <AssetContext.Provider value={baseUrl || new URL('/', location.href).href}><Markdown remarkPlugins={remarkPlugins} urlTransform={urlTransform} components={components}>{source}</Markdown></AssetContext.Provider>
 })
 
 export default MarkdownContent

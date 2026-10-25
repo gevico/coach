@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useContext, useEffect, useRef } from 'react'
+import { PresentationContext } from '../lib/presentation-context'
 
 interface Props {
   step: number
@@ -39,6 +40,9 @@ function writingLines(block: HTMLElement, scale: number): Line[] {
 export default function BoardWritingEffects({ step, ready, overview }: Props) {
   const toolRef = useRef<HTMLDivElement>(null)
   const seen = useRef(new WeakSet<Element>())
+  const { settings, paused, reduced } = useContext(PresentationContext)
+  const playback = useRef({ paused, speed: settings.speed })
+  playback.current = { paused, speed: settings.speed }
 
   useEffect(() => {
     const tool = toolRef.current
@@ -64,12 +68,15 @@ export default function BoardWritingEffects({ step, ready, overview }: Props) {
       tool.style.transform = `translate(${x}px, ${y}px)`
     }
     const tap = (target: Element, after = () => {}) => {
-      const start = performance.now()
+      let elapsed = 0
+      let last = performance.now()
       const animate = (now: number) => {
+        if (!playback.current.paused) elapsed += Math.max(0, now - last) * playback.current.speed
+        last = now
         const rect = target.getBoundingClientRect()
         const origin = board.getBoundingClientRect()
         const scale = origin.width / board.offsetWidth
-        const progress = Math.min(1, (now - start) / 650)
+        const progress = Math.min(1, elapsed / 650)
         place((rect.right - origin.left) / scale + 5, (rect.bottom - origin.top) / scale - 3, 'pen')
         tool.style.opacity = String(Math.min(1, (1 - progress) * 4))
         tool.style.setProperty('--tap-scale', String(1 - Math.sin(progress * Math.PI) * .18))
@@ -79,9 +86,12 @@ export default function BoardWritingEffects({ step, ready, overview }: Props) {
       frame = requestAnimationFrame(animate)
     }
     const block = board.querySelector<HTMLElement>(`[data-reading-step="${step}"]`)
-    if (overview || media.matches) {
-      for (const visible of board.querySelectorAll('[data-visible="true"]')) seen.current.add(visible)
-    } else if (block && !seen.current.has(block) && block.dataset.visible === 'true') {
+    if (overview || media.matches || settings.motion !== 'write') {
+      for (const visible of board.querySelectorAll<HTMLElement>('[data-visible="true"]')) {
+        seen.current.add(visible)
+        visible.dataset.written = 'true'
+      }
+    } else if (block && !block.querySelector('[data-board-plugin]') && !seen.current.has(block) && block.dataset.visible === 'true') {
       seen.current.add(block)
       active = block
       const origin = board.getBoundingClientRect()
@@ -91,10 +101,14 @@ export default function BoardWritingEffects({ step, ready, overview }: Props) {
       const lines = writingLines(block, scale)
       const duration = Math.min(380, 5000 / Math.max(1, lines.length))
       const start = performance.now() + 100
+      let accumulated = 0
+      let last = start
       block.dataset.writing = 'true'
-      block.style.setProperty('--writing-emphasis-delay', `${lines.length * duration + 100}ms`)
+      block.style.setProperty('--writing-emphasis-delay', `${lines.length * duration / settings.speed + 100}ms`)
       const animate = (now: number) => {
-        const elapsed = Math.max(0, now - start)
+        if (!playback.current.paused) accumulated += Math.max(0, now - last) * playback.current.speed
+        last = now
+        const elapsed = accumulated
         const index = Math.floor(elapsed / duration)
         const line = lines[index]
         if (!line) {
@@ -118,7 +132,7 @@ export default function BoardWritingEffects({ step, ready, overview }: Props) {
     let down: { x: number; y: number } | null = null
     const pointerDown = (event: PointerEvent) => { down = { x: event.clientX, y: event.clientY } }
     const pointerUp = (event: PointerEvent) => {
-      if (media.matches || !down || Math.hypot(event.clientX - down.x, event.clientY - down.y) > 6) return
+      if (media.matches || settings.motion === 'none' || playback.current.paused || !down || Math.hypot(event.clientX - down.x, event.clientY - down.y) > 6) return
       const target = Array.from(board.querySelectorAll('[data-visible="true"] .board-circle, [data-visible="true"] .board-highlight, [data-visible="true"] strong')).find(element =>
         Array.from(element.getClientRects()).some(rect => event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom))
       if (target) { stop(); tap(target) }
@@ -133,7 +147,7 @@ export default function BoardWritingEffects({ step, ready, overview }: Props) {
       host.removeEventListener('pointerup', pointerUp)
       media.removeEventListener('change', stop)
     }
-  }, [step, ready, overview])
+  }, [step, ready, overview, settings.motion, reduced])
 
   return <div ref={toolRef} className="board-writing-tool" aria-hidden="true" hidden>
     <span className="board-writing-tip"><svg width="36" height="42" viewBox="0 0 36 42" fill="none">

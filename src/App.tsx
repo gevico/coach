@@ -18,6 +18,11 @@ import { outlineFromBoard } from './lib/outline'
 import ExplanationPanel from './components/ExplanationPanel'
 import { buildExplanationPrompt, explanationsFromBoard } from './lib/explanation'
 import coachIcon from '../assets/brand/coach-icon.png'
+import BoardAppearance from './components/BoardAppearance'
+import BoardEntranceEffects from './components/BoardEntranceEffects'
+import { BlockContext, PresentationContext, loadPresentation, useReducedMotion } from './lib/presentation-context'
+import type { PresentationSettings } from './lib/presentation'
+import { resolvePresentation } from './lib/presentation'
 
 const STORAGE_KEY = 'coach-markdown-v1'
 const COLUMN_WIDTH = 470
@@ -81,6 +86,10 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   const [exporting, setExporting] = useState(false)
   const [message, setMessage] = useState('')
   const [revision, setRevision] = useState(0)
+  const [presentation, setPresentation] = useState(() => resolvePresentation(loadPresentation(), compileMarkdown(source).presentation))
+  const [effectsPaused, setEffectsPaused] = useState(false)
+  const [pageHidden, setPageHidden] = useState(window.document.hidden)
+  const reduced = useReducedMotion()
   const boardRef = useRef<HTMLElement>(null)
   const cameraRef = useRef<CanvasCamera | null>(null)
   const editorRef = useRef<HTMLTextAreaElement>(null)
@@ -94,6 +103,17 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   const assetBase = new URL(initialDocument?.assetBase ?? '/', window.location.origin).href
 
   const document = useMemo(() => compileMarkdown(renderedSource), [renderedSource])
+  const presentationKey = JSON.stringify(document.presentation)
+  useEffect(() => { setPresentation(resolvePresentation(loadPresentation(), document.presentation)) }, [presentationKey])
+  useEffect(() => {
+    const change = () => setPageHidden(window.document.hidden)
+    window.document.addEventListener('visibilitychange', change)
+    return () => window.document.removeEventListener('visibilitychange', change)
+  }, [])
+  function changePresentation(value: PresentationSettings) {
+    setPresentation(value)
+    try { localStorage.setItem('coach-presentation-v1', JSON.stringify(value)) } catch { /* In-memory settings remain available. */ }
+  }
   const outline = useMemo(() => outlineFromBoard(document), [document])
   const hasOutline = pageIndex === 0 && outline.length > 0
   const page = document.pages[Math.min(pageIndex, document.pages.length - 1)]
@@ -274,6 +294,11 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
     function handleKey(event: KeyboardEvent) {
       if (event.target instanceof Element && event.target.closest('textarea, input, select, [contenteditable="true"]')) return
       if (event.ctrlKey || event.metaKey || event.altKey) return
+      if (event.key === 'Escape' && window.document.fullscreenElement?.classList.contains('board-plugin')) {
+        event.preventDefault()
+        void window.document.exitFullscreen()
+        return
+      }
       if (recording.busy && ['p', 'e', 'f', 'Escape'].includes(event.key === 'Escape' ? event.key : event.key.toLowerCase())) {
         event.preventDefault()
         return
@@ -405,12 +430,14 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   }
 
   return (
-    <div className={`app-shell ${zenMode ? 'zen-mode' : ''} ${presenterActive ? 'presenter-mode' : ''} ${explanationActive ? 'explanation-mode' : ''}`} data-recording-busy={recording.busy}>
+    <PresentationContext.Provider value={{ settings: presentation, paused: effectsPaused || pageHidden, reduced, recording: recording.busy }}>
+    <div className={`app-shell ${zenMode ? 'zen-mode' : ''} ${presenterActive ? 'presenter-mode' : ''} ${explanationActive ? 'explanation-mode' : ''}`} data-recording-busy={recording.busy} data-board-theme={presentation.theme}>
       {!zenMode && <header className="app-header">
         <a className="brand" href="/" aria-label="Coach 首页"><img className="brand-symbol" src={coachIcon} alt="" /><span>coach</span></a>
         <div className="header-divider" />
         <div className="document-name"><h1>{page?.title || sourceFileName || '我的画布'}</h1><span className="document-meta">{columns} 个栏目 · {blockCount} 个内容块</span></div>
         <div className="header-actions">
+          <BoardAppearance settings={presentation} paused={effectsPaused} disabled={recording.busy} onChange={changePresentation} onPause={() => setEffectsPaused(value => !value)} />
           <div className="reveal-controls">
             <div className="page-switch" role="group" aria-label="画布换页"><button aria-label="上一张画布" disabled={pageIndex <= 0} onClick={() => changePage(pageIndex - 1)}><ChevronLeft size={18} strokeWidth={2.25} /></button><span className="page-switch-count" aria-live="polite"><span className="page-switch-current">{pageIndex + 1}</span><span className="page-switch-separator">/</span><span>{Math.max(1, document.pages.length)}</span></span><button aria-label="下一张画布" disabled={pageIndex >= document.pages.length - 1} onClick={() => changePage(pageIndex + 1)}><ChevronRight size={18} strokeWidth={2.25} /></button></div>
             {!explanationActive && <button className={`ui-icon-button ${showAll ? 'is-active' : ''}`} aria-label="全部显示" data-tooltip="全部显示" aria-pressed={showAll} onClick={() => setShowAll(true)}><Eye size={18} /></button>}
@@ -441,25 +468,29 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
           <textarea id="markdown-editor" ref={editorRef} value={source} onChange={(event) => setSource(event.target.value)} spellCheck={false} placeholder={'# 画布标题\n\n## 第一栏目\n\n在这里编写内容。'} />
           <div className="editor-help"><span><b>##</b> 创建栏目</span><span><b>###</b> 创建板块</span><span><b>![ ]( )</b> 插入图片</span></div>
           <details className="syntax-help"><summary>标记与图片语法 <ChevronDown size={12} /></summary><code>:circle[需要圈出的文字]</code><code>:shade[添加底部阴影]</code><code>:highlight[高亮文字]</code><code>**加粗文字**</code><code>![图片说明](https://网站/图片.svg)</code></details>
+          <details className="syntax-help"><summary>图示与演示插件</summary><p>使用 mermaid、math、coach-scene 或 coach-video 代码围栏。完整语法与播放约定见 docs/presentation.md。</p></details>
           <div className="editor-footer"><button onClick={() => { setSource(EXAMPLE_MARKDOWN); cameraRef.current?.fit() }}><RotateCcw size={13} />使用示例</button></div>
         </aside>}
 
         <section id="coach-recording-canvas" className="canvas-area" aria-label={presenterActive ? '录制画布（16:9）' : '画布预览'} onPointerDownCapture={beginReadingPointer} onPointerMoveCapture={moveReadingPointer} onPointerUpCapture={finishReadingPointer} onPointerCancel={() => { readingPointerRef.current = null }}>
           <div className="canvas-stage">
             {page ? <CameraCanvas width={boardWidth} height={boardHeight} ready={ready} overview={showAll && !explanationMode} focusIndex={focusIndex} cameraRef={cameraRef} onZoomChange={setScale}>
-              <article key={sourceKey} ref={boardRef} className="canvas-board" data-ready={ready} aria-label={page.title || 'Markdown 画布'} style={{ width: boardWidth, '--column-count': layoutColumns } as CSSProperties}>
+              <article key={sourceKey} ref={boardRef} className="canvas-board" data-ready={ready} data-theme={presentation.theme} data-motion={presentation.motion} data-motion-paused={effectsPaused || pageHidden} aria-label={page.title || 'Markdown 画布'} style={{ width: boardWidth, '--column-count': layoutColumns } as CSSProperties}>
                 <div className="board-columns">
                   {hasOutline && <section className="board-column board-opening" aria-label="板书大标题与前言" data-reveal data-visible="true" data-reading-step="0" data-reading-current={explanationActive && readingStep === 0}>
                     <BoardIntroduction title={page.title} preface={page.preface || page.notes || page.explanation || ''} baseUrl={assetBase} />
                   </section>}
                   {page.columns.map((column, columnIndex) => <section className="board-column" key={column.id} aria-label={column.title || `栏目 ${columnIndex + 1}`}>
                     {column.title && <h2 className="column-heading" data-reveal {...revealAttributes()}><span>{column.title}</span></h2>}
-                    {column.blocks.map((block) => <div className={`content-block block-${block.kind}`} key={block.id} data-reveal {...revealAttributes()}>
+                    {column.blocks.map((block) => { const attributes = revealAttributes(); return <div className={`content-block block-${block.kind}`} key={block.id} data-reveal {...attributes}>
+                      <BlockContext.Provider value={{ active: !showAll && attributes['data-reading-step'] === navigationStep, visible: attributes['data-visible'] }}>
                       <MarkdownContent source={block.markdown} baseUrl={assetBase} />
-                    </div>)}
+                      </BlockContext.Provider>
+                    </div> })}
                   </section>)}
                 </div>
                 <BoardWritingEffects step={explanationActive ? readingStep : visibleCount} ready={ready} overview={showAll} />
+                <BoardEntranceEffects step={explanationActive ? readingStep : visibleCount} ready={ready} overview={showAll} />
               </article>
             </CameraCanvas> : <div className="empty-canvas"><BookOpen size={34} strokeWidth={1.2} /><h2>从一段 Markdown 开始</h2><button className="button button-dark" onClick={() => setEditorOpen(true)}><Code2 size={15} />编写内容</button></div>}
           </div>
@@ -469,10 +500,12 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
       </main>
 
       {message && <div className="toast" role="status">{message}</div>}
+      {!!document.issues?.length && <div className="presentation-issue" role="alert">展示设置：{document.issues.join('；')}</div>}
       <input ref={fileRef} type="file" accept=".md,.markdown,text/markdown,text/plain" hidden onChange={(event) => void importMarkdown(event)} />
       <input ref={imageRef} type="file" accept="image/*" multiple hidden onChange={(event) => void insertImages(event)} />
       <input ref={notesFileRef} type="file" aria-label="口播稿文件" accept=".md,.markdown,text/markdown,text/plain" hidden onChange={(event) => void importNotes(event)} />
       <span className="sr-only" aria-live="polite">{ready ? `画布已准备，包含 ${total} 个展示元素` : '正在排版画布'}</span>
     </div>
+    </PresentationContext.Provider>
   )
 }

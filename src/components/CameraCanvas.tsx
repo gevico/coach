@@ -313,7 +313,7 @@ export default function CameraCanvas({ children, width, height, ready, focusInde
         theme="light"
         UIOptions={{ canvasActions: { changeViewBackgroundColor: false, clearCanvas: false, export: false, loadScene: false, saveToActiveFile: false, toggleTheme: false, saveAsImage: false }, tools: { image: false } }}
       />
-      <div className="camera-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      <div className="camera-overlay" style={{ position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none', overflow: 'hidden' }}>
         <div ref={sceneRef} className="camera-scene" style={{ position: 'absolute', left: 0, top: 0, width, height, transformOrigin: 'top left' }}>
           {children}
         </div>
