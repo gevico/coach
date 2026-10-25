@@ -15,6 +15,8 @@
 
 Coach 将文字、图片、代码和表格排布在同一张画布上。栏目从左向右排列，内容从上向下展开；使用方向键控制进度，摄像头自动跟随当前内容。
 
+工具栏的调色板提供默认板书、现代排版、暗色光点、纸色演播室、深色演示和墨绿黑板主题。主题包含配色、标题排版与入场效果，也可以单独选择五种入场效果。内容插件支持原生 Mermaid、KaTeX、HTML / GSAP / WebGL 场景和视频片段。动态图示与场景自动循环，视频提供播放与进度控制。[查看展示语法](docs/presentation.md)，或运行 `coach samples/classroom-effects.md --presenter`。
+
 代码镜像：[CNB 仓库](https://cnb.cool/gevico.online/coach)。GitHub Actions 在推送后同步分支和标签，也可以手动运行 `Sync to CNB`。同步使用仓库 Secret `GIT_PASSWORD` 保存 CNB 访问令牌，HTTPS 用户名为 `cnb`；目标仓库按 GitHub 分支内容强制更新。
 
 ## 快速开始

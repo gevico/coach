@@ -7,7 +7,7 @@
   "license": "MIT",
   "engines": { "node": ">=22.12" },
   "bin": { "coach": "bin/coach.mjs" },
-  "files": ["bin", "dist", "LICENSE", "README.md", "docs/cli.md"],
+  "files": ["bin", "dist", "LICENSE", "README.md", "docs/cli.md", "docs/presentation.md"],
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",

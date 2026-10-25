@@ -237,9 +237,13 @@ coach lesson.md --presenter --record-dir ./recordings
 | 字段 | 内容 |
 | --- | --- |
 | `source` | 当前文件的 UTF-8 Markdown 内容 |
-| `assetBase` | 图片资源目录 `/course-assets/` |
+| `assetBase` | 课程素材目录 `/course-assets/` |
 | `fileName` | Markdown 文件名 |
 | `documentId` | 文件身份标识，用于隔离浏览器保存内容 |
 | `notes` | 使用 `--notes` 时返回口播文件的 `source` 与 `fileName` |
 
-`documentId` 根据文件的绝对路径生成。`/course-assets/` 提供这份 Markdown 所在目录中的图片，其他类型的文件、隐藏文件和目录以外的路径返回 `404`。
+`documentId` 根据文件的绝对路径生成。`/course-assets/` 提供这份 Markdown 所在目录中的受支持素材；隐藏文件、目录以外的路径和未列入支持范围的文件返回 `404`。
+
+## 动态课程素材
+
+课程目录内可引用图片、HTML、JavaScript、CSS、JSON、字体、MP4/WebM、GLTF/GLB 和 WASM 素材。素材路径必须位于课程目录内，隐藏文件和指向目录外部的符号链接不能通过素材接口读取。HTML 以独立来源执行，JavaScript 模块和字体支持场景内跨域加载。具体用法见 [课堂外观与内容插件](presentation.md)。

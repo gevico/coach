@@ -6,6 +6,7 @@
 | table-code.md | 表格和多行代码 |
 | diagrams.md | 本地 SVG 与 GIF 动图 |
 | multiple-canvases.md | Markdown 换页与画布切换 |
+| classroom-effects.md | 主题、入场动画、原生图示、公式、HTML 场景与视频 |
 
 ```bash
 make run FILE=samples/getting-started.md

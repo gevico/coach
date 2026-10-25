@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>讲解的节奏</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #f4f1e9; font-family: system-ui, sans-serif; color: #202b32; }
+#stage { position: relative; width: 1280px; height: 720px; overflow: hidden; background: #f4f1e9; }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(#202b3209 1px, transparent 1px), linear-gradient(90deg, #202b3209 1px, transparent 1px); background-size: 40px 40px; }
+.band { position: absolute; inset: 0 0 auto; height: 14px; background: #087f8c; transform-origin: left; }
+.eyebrow { position: absolute; top: 95px; left: 90px; color: #087f8c; font-size: 24px; letter-spacing: 4px; }
+h1 { position: absolute; left: 85px; top: 155px; font-size: 108px; line-height: 1.22; margin: 0; letter-spacing: -5px; }
+h1 span { display: block; }
+h1 .accent { color: #087f8c; }
+.caption { position: absolute; left: 94px; bottom: 95px; font-size: 28px; padding-left: 20px; border-left: 5px solid #087f8c; }
+.panel { position: absolute; right: 80px; top: 160px; width: 350px; height: 390px; background: #15232e; color: #d5edf0; padding: 36px; box-shadow: 16px 16px #087f8c; }
+.panel small { color: #7ecdd2; font-size: 18px; letter-spacing: 3px; }
+.panel strong { display: block; font-size: 42px; margin: 25px 0; }
+.panel p { font-size: 23px; line-height: 1.8; }
+.rule { height: 2px; background: #7ecdd2; transform-origin: left; }
+.foot { position: absolute; bottom: 35px; right: 80px; font-size: 16px; color: #627078; }
+</style>
+</head>
+<body>
+<main id="stage">
+  <div class="grid"></div><div class="band"></div>
+  <div class="eyebrow">COACH / 课堂演示</div>
+  <h1><span>先理解，</span><span class="accent">再展开。</span></h1>
+  <section class="panel"><small>LECTURE NOTES</small><strong>讲解的节奏</strong><div class="rule"></div><p>让关键内容依次出现。<br>停下来解释。<br>回到需要讨论的时刻。</p></section>
+  <div class="caption">循环播放，随时暂停，跟随你的讲述。</div>
+  <div class="foot">12 秒 / 循环播放的 HTML 动画</div>
+</main>
+<script>
+const animations = [];
+function motion(selector, keyframes, options) {
+  document.querySelectorAll(selector).forEach((element, index) => {
+    const animation = element.animate(keyframes, { duration: 1100, delay: index * 200, fill: 'both', easing: 'cubic-bezier(.2,.8,.2,1)', ...options });
+    animation.pause();
+    animations.push(animation);
+  });
+}
+motion('.band', [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 1400 });
+motion('.eyebrow', [{ opacity: 0, transform: 'translateY(25px)' }, { opacity: 1, transform: 'translateY(0)' }], { delay: 250 });
+motion('h1 span', [{ opacity: 0, transform: 'translateY(85px)', filter: 'blur(8px)' }, { opacity: 1, transform: 'translateY(0)', filter: 'blur(0)' }], { delay: 700 });
+motion('.panel', [{ opacity: 0, transform: 'translateX(130px)' }, { opacity: 1, transform: 'translateX(0)' }], { delay: 1900 });
+motion('.rule', [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { delay: 2900 });
+motion('.panel p', [{ opacity: 0, clipPath: 'inset(0 0 100% 0)' }, { opacity: 1, clipPath: 'inset(0 0 0% 0)' }], { delay: 3300, duration: 2500 });
+motion('.caption', [{ opacity: 0 }, { opacity: 1 }], { delay: 6200 });
+window.coachScene = { render(seconds) { animations.forEach(animation => { animation.currentTime = seconds * 1000; }); } };
+window.coachScene.render(0);
+window.ready = true;
+</script>
+</body>
+</html>
