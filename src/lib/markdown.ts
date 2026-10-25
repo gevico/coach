@@ -3,12 +3,17 @@ import remarkDirective from 'remark-directive'
 import remarkGfm from 'remark-gfm'
 import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
+import remarkFrontmatter from 'remark-frontmatter'
+import { parseMapping, presentationSettings } from './presentation'
+import type { PresentationSettings } from './presentation'
 import { unified } from 'unified'
 import { attachBoardComments, extractBoardComments, readBoardComment } from './board-comments'
 import type { BoardComments } from './board-comments'
 
 export interface BoardDocument {
   pages: CanvasPage[]
+  presentation?: Partial<PresentationSettings>
+  issues?: string[]
 }
 
 export interface CanvasPage extends BoardComments {
@@ -35,6 +40,7 @@ const markdownProcessor = unified()
   .use(remarkParse)
   .use(remarkGfm)
   .use(remarkDirective)
+  .use(remarkFrontmatter)
   .use(remarkStringify, { bullet: '-', fences: true, listItemIndent: 'one' })
 
 function serializeNode(node: RootContent): string {
@@ -173,6 +179,11 @@ export function compileMarkdown(source: string): BoardDocument {
   }
 
   for (const node of root.children) {
+    if (node.type === 'yaml') {
+      try { document.presentation = presentationSettings(parseMapping(node.value).presentation) }
+      catch (error) { (document.issues ??= []).push(error instanceof Error ? error.message : '无法读取展示设置。') }
+      continue
+    }
     if (node.type === 'definition') {
       continue
     }
