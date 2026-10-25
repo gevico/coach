@@ -12,7 +12,7 @@ import { runtimeDirectory } from './runtime-assets.mjs';
 
 const packageDirectory = runtimeDirectory();
 const distDirectory = path.join(packageDirectory, 'dist');
-const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.svg']);
+const mediaExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.svg', '.html', '.js', '.mjs', '.css', '.json', '.mp4', '.webm', '.woff', '.woff2', '.ttf', '.glb', '.gltf', '.bin', '.wasm']);
 
 function parsePort(value) {
   const port = Number(value);
@@ -99,7 +99,7 @@ function createApp(filePath, notesPath, recorder) {
       const requestedPath = decodeURIComponent(request.path).replace(/^\/+/, '');
       const candidate = path.resolve(assetDirectory, requestedPath);
       if (!isWithinDirectory(assetDirectory, candidate) || hasHiddenSegment(requestedPath)
-        || !imageExtensions.has(path.extname(candidate).toLowerCase())) {
+        || !mediaExtensions.has(path.extname(candidate).toLowerCase())) {
         response.sendStatus(404);
         return;
       }
@@ -107,7 +107,7 @@ function createApp(filePath, notesPath, recorder) {
       assetPath = await realpath(candidate);
       const relativePath = path.relative(assetDirectory, assetPath);
       if (!isWithinDirectory(assetDirectory, assetPath) || hasHiddenSegment(relativePath)
-        || !imageExtensions.has(path.extname(assetPath).toLowerCase())
+        || !mediaExtensions.has(path.extname(assetPath).toLowerCase())
         || !(await stat(assetPath)).isFile()) {
         response.sendStatus(404);
         return;
@@ -124,7 +124,12 @@ function createApp(filePath, notesPath, recorder) {
     response.sendFile(path.relative(assetDirectory, assetPath), {
       root: assetDirectory,
       dotfiles: 'deny',
-      headers: { 'Cache-Control': 'no-cache' },
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
+        'X-Content-Type-Options': 'nosniff',
+        ...(path.extname(assetPath).toLowerCase() === '.html' ? { 'Content-Security-Policy': "sandbox allow-scripts; form-action 'none'" } : {}),
+      },
     }, (error) => {
       if (error) next(error);
     });
