@@ -4,6 +4,7 @@ import App from './App'
 import { loadInitialDocument } from './lib/document'
 import './styles.css'
 import './presentation.css'
+import './interface-theme.css'
 
 const root = document.getElementById('root')!
 loadInitialDocument().then((initialDocument) => {

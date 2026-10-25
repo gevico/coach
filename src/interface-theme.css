@@ -1,0 +1,140 @@
+.app-shell {
+  --ui-bg: var(--board-bg);
+  --ui-chrome: var(--board-bg);
+  --ui-surface: #fff;
+  --ui-subtle: #f6f4f9;
+  --ui-text: var(--board-fg);
+  --ui-muted: #655c6e;
+  --ui-accent: var(--board-accent);
+  --ui-border: color-mix(in srgb, var(--ui-accent) 18%, var(--ui-surface));
+  --ui-hover: color-mix(in srgb, var(--ui-accent) 8%, var(--ui-surface));
+  --ui-active: color-mix(in srgb, var(--ui-accent) 14%, var(--ui-surface));
+  --ui-disabled: color-mix(in srgb, var(--ui-muted) 45%, var(--ui-surface));
+  --ui-primary-text: #fff;
+  --ui-danger: #a13337;
+  --ui-danger-bg: #fff0f0;
+  --ui-warning: #7a4b0f;
+  --ui-warning-bg: #fff2d8;
+  --ui-panel-radius: 16px;
+  --ui-control-radius: 18px;
+  --ui-small-radius: 8px;
+  --ui-pill-radius: 20px;
+  --ui-panel-shadow: 0 2px 4px #00000005, 0 8px 24px #0000000a;
+  --ui-control-shadow: 0 1px 4px #00000014, inset 0 0 0 1px var(--ui-border);
+  color: var(--ui-text);
+  background: var(--ui-bg);
+  color-scheme: light;
+  accent-color: var(--ui-accent);
+  scrollbar-color: var(--ui-border) var(--ui-surface);
+}
+
+.app-shell[data-board-theme='studio'] {
+  --ui-surface: #fbf9f2;
+  --ui-subtle: #eae8de;
+  --ui-accent: #066b77;
+  --ui-muted: #59656b;
+  --ui-panel-radius: 14px;
+  --ui-control-radius: 12px;
+  --ui-pill-radius: 14px;
+}
+.app-shell[data-board-theme='editorial'] {
+  --ui-subtle: #e9f2f4;
+  --ui-muted: #435058;
+  --ui-panel-radius: 4px;
+  --ui-control-radius: 4px;
+  --ui-small-radius: 3px;
+  --ui-pill-radius: 5px;
+  --ui-panel-shadow: 3px 3px #1fb3c719;
+  --ui-control-shadow: inset 0 0 0 1px var(--ui-border);
+}
+.app-shell:is([data-board-theme='night'], [data-board-theme='particles'], [data-board-theme='chalk']) {
+  --ui-surface: var(--board-panel);
+  --ui-subtle: var(--board-bg);
+  --ui-chrome: var(--board-panel);
+  --ui-muted: var(--board-muted);
+  --ui-primary-text: #101923;
+  --ui-border: var(--board-line);
+  --ui-danger: #ffb4ad;
+  --ui-danger-bg: #3b1f29;
+  --ui-warning: #f4ce8c;
+  --ui-warning-bg: #30281e;
+  --ui-panel-shadow: 0 8px 28px #0003;
+  --ui-control-shadow: inset 0 0 0 1px var(--ui-border);
+  color-scheme: dark;
+}
+.app-shell[data-board-theme='particles'] {
+  --ui-panel-radius: 8px;
+  --ui-control-radius: 8px;
+  --ui-small-radius: 5px;
+  --ui-pill-radius: 8px;
+  --ui-panel-shadow: inset 0 1px #9cc7ff12, 0 12px 32px #0006;
+  --ui-control-shadow: inset 0 0 0 1px #9cc7ff30;
+}
+.app-shell[data-board-theme='chalk'] {
+  --ui-primary-text: #17352e;
+  --ui-panel-radius: 12px;
+  --ui-control-radius: 12px;
+  --ui-pill-radius: 12px;
+  --ui-panel-shadow: none;
+}
+
+.app-shell :is(.app-header, .presenter-workspace) { background: var(--ui-bg); }
+.app-shell .app-header { background: var(--ui-chrome); }
+.app-shell :is(.brand, .presenter-copy, .presenter-notes h2, .presenter-next h2, .explanation-empty h3, .empty-canvas h2) { color: var(--ui-text); }
+.app-shell :is(.presenter-notes, .explanation-panel, .presenter-next, .appearance-panel, .export-menu, .toast) { background: var(--ui-surface); color: var(--ui-text); border-color: var(--ui-border); border-radius: var(--ui-panel-radius); box-shadow: var(--ui-panel-shadow); }
+.app-shell :is(.document-name, .ui-icon-button, .zoom-control, .page-switch) { background: var(--ui-surface); color: var(--ui-text); border-radius: var(--ui-control-radius); box-shadow: var(--ui-control-shadow); }
+.app-shell :is(.button, .presenter-notes-tools > button, .explanation-tools > button, .explanation-navigation button, .mac-directory-buttons button) { background: var(--ui-surface); color: var(--ui-muted); border-color: var(--ui-border); border-radius: var(--ui-pill-radius); }
+.app-shell :is(.document-meta, .ui-icon-button, .export-menu svg, .icon-button, .zoom-control button, .page-switch-count, .page-switch button, .presenter-eyebrow, .presenter-file, .presenter-font-control span, .presenter-empty, .explanation-empty, .explanation-navigation > span, .mac-microphone, .mac-directory-toggle, .mac-directory-location, .mac-directory-location button, .mac-directory-settings label, .mac-open-recording, .empty-canvas) { color: var(--ui-muted); }
+.app-shell :is(.zoom-control .zoom-value, .page-switch-current) { color: var(--ui-text); }
+.app-shell :is(.page-switch-separator, .page-switch button:disabled) { color: var(--ui-disabled); }
+.app-shell .zoom-control > span { background: var(--ui-border); }
+.app-shell .page-switch button:first-child { border-radius: var(--ui-control-radius) 0 0 var(--ui-control-radius); }
+.app-shell .page-switch button:last-child { border-radius: 0 var(--ui-control-radius) var(--ui-control-radius) 0; }
+.app-shell :is(.ui-icon-button, .button, .export-menu button, .zoom-control button, .page-switch button, .presenter-font-control button, .presenter-notes-tools > button, .explanation-tools > button, .explanation-navigation button, .mac-directory-buttons button, .icon-button, .mac-directory-toggle, .editor-tools button):hover:not(:disabled) { background: var(--ui-hover); color: var(--ui-accent); border-color: var(--ui-border); }
+.app-shell :is(.ui-icon-button.is-active, .ui-icon-button[aria-expanded='true'], .ui-icon-button[aria-pressed='true'], .button.is-active, .mac-microphone.is-active, .mac-directory-toggle[aria-expanded='true']) { background: var(--ui-active); color: var(--ui-accent); }
+.app-shell .page-switch button:active:not(:disabled) { background: var(--ui-active); }
+.app-shell :is(.button-dark, .mac-record-button, .mac-directory-buttons button[type='submit']) { background: var(--ui-accent); color: var(--ui-primary-text); border-color: var(--ui-accent); border-radius: var(--ui-pill-radius); }
+.app-shell :is(.button-dark, .mac-record-button, .mac-directory-buttons button[type='submit']):hover:not(:disabled):not(.is-recording) { background: color-mix(in srgb, var(--ui-accent) 90%, var(--ui-text)); color: var(--ui-primary-text); border-color: var(--ui-accent); }
+.app-shell .mac-record-button.is-recording { background: var(--ui-danger-bg); color: var(--ui-danger); border-color: var(--ui-danger); }
+.app-shell .mac-recording-error { color: var(--ui-danger); }
+.app-shell :is(.image-error, .plugin-error) { color: var(--ui-danger); background: var(--ui-danger-bg); }
+.app-shell :is(.presenter-issue, .presentation-issue) { color: var(--ui-warning); background: var(--ui-warning-bg); }
+
+.app-shell .ui-icon-button[data-tooltip]::after { background: var(--ui-surface); color: var(--ui-text); border-color: var(--ui-border); border-radius: var(--ui-small-radius); box-shadow: var(--ui-panel-shadow); }
+.app-shell :is(button, a, textarea, input, select):focus-visible { outline-color: var(--ui-accent); }
+.app-shell :is(.mac-microphone:focus-within, .mac-directory-settings > input:focus) { outline-color: var(--ui-accent); }
+.app-shell :is(.presenter-notes-tools, .presenter-introduction, .mac-recording-controls, .mac-directory-settings, .explanation-tools, .explanation-navigation, .plugin-catalog) { border-color: var(--ui-border); }
+.app-shell .presenter-cue { background: var(--ui-surface); color: var(--ui-muted); border-color: var(--ui-border); }
+.app-shell :is(.presenter-progress, .presenter-next-icon) { color: var(--ui-accent); background: var(--ui-active); }
+.app-shell .presenter-progress { border-radius: var(--ui-pill-radius); }
+.app-shell :is(.presenter-font-control, .mac-microphone) { border-color: var(--ui-border); border-radius: var(--ui-pill-radius); }
+.app-shell .presenter-font-control button { background: var(--ui-surface); color: var(--ui-muted); }
+.app-shell :is(.presenter-copy, .editor-panel textarea) { scrollbar-color: var(--ui-border) transparent; }
+.app-shell .presenter-copy :is(code, pre) { background: var(--ui-subtle); color: var(--ui-text); border-radius: var(--ui-small-radius); }
+.app-shell .presenter-copy a { color: var(--ui-accent); }
+.app-shell .presenter-copy :is(td, th) { border-color: var(--ui-border); }
+.app-shell .explanation-copy blockquote { color: var(--ui-muted); border-color: var(--ui-accent); }
+.app-shell :is(.mac-directory-settings > input, .explanation-selection, .appearance-panel select) { color: var(--ui-text); background: var(--ui-subtle); border-color: var(--ui-border); border-radius: var(--ui-small-radius); }
+.app-shell input::placeholder { color: var(--ui-muted); }
+.app-shell option { color: var(--ui-text); background: var(--ui-surface); }
+.app-shell.explanation-mode [data-reading-current='true'] { background-color: color-mix(in srgb, var(--ui-accent) 7%, transparent); box-shadow: 0 0 0 2px var(--ui-border); }
+.app-shell.explanation-mode [data-reading-step]:focus-visible { outline-color: var(--ui-accent); }
+
+.app-shell .editor-panel { background: var(--ui-subtle); color: var(--ui-text); border-color: var(--ui-border); }
+.app-shell .editor-tools button { background: var(--ui-surface); color: var(--ui-muted); border-color: var(--ui-border); border-radius: var(--ui-small-radius); }
+.app-shell .editor-panel textarea { color: var(--ui-text); border-color: var(--ui-border); caret-color: var(--ui-accent); }
+.app-shell .editor-panel textarea::placeholder { color: var(--ui-muted); }
+.app-shell :is(.editor-help, .editor-footer, .syntax-help) { color: var(--ui-muted); border-color: var(--ui-border); }
+.app-shell :is(.editor-help b, .editor-footer button, .syntax-help summary) { color: var(--ui-accent); }
+.app-shell .syntax-help code { color: var(--ui-muted); }
+.app-shell .theme-options button { background: var(--ui-subtle); color: var(--ui-text); border-radius: var(--ui-small-radius); }
+.app-shell .theme-options button:hover { background: var(--ui-hover); }
+.app-shell .theme-options button[aria-pressed='true'] { border-color: var(--ui-accent); background: var(--ui-active); }
+.app-shell :is(.theme-options button small, .theme-hint, .plugin-catalog > span) { color: var(--ui-muted); }
+.app-shell .plugin-catalog code { color: var(--ui-accent); }
+.app-shell .export-menu button { border-radius: var(--ui-small-radius); }
+.app-shell .content-block input[type='checkbox'] { accent-color: var(--ui-accent); }
+
+.app-shell[data-board-theme='editorial'] :is(.presenter-notes, .explanation-panel) { border-top: 3px solid var(--ui-accent); }
+.app-shell:is([data-board-theme='editorial'], [data-board-theme='particles']) :is(.presenter-notes h2, .explanation-heading h2) { color: var(--ui-accent); }
+.app-shell .player-controls :is(button, input):focus-visible { outline-color: #fff; }
