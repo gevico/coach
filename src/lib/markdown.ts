@@ -241,13 +241,10 @@ export function compileMarkdown(source: string): BoardDocument {
     for (const page of document.pages) {
       if (page.preface) page.preface += `\n\n${definitions}`
       if (page.notes) page.notes += `\n\n${definitions}`
-      if (page.explanation) page.explanation += `\n\n${definitions}`
       for (const column of page.columns) {
         if (column.notes) column.notes += `\n\n${definitions}`
-        if (column.explanation) column.explanation += `\n\n${definitions}`
         for (const block of column.blocks) {
           if (block.notes) block.notes += `\n\n${definitions}`
-          if (block.explanation) block.explanation += `\n\n${definitions}`
         }
       }
     }

@@ -80,17 +80,17 @@
 
 .app-shell :is(.app-header, .presenter-workspace) { background: var(--ui-bg); }
 .app-shell .app-header { background: var(--ui-chrome); }
-.app-shell :is(.brand, .presenter-copy, .presenter-notes h2, .presenter-next h2, .explanation-empty h3, .empty-canvas h2) { color: var(--ui-text); }
-.app-shell :is(.presenter-notes, .explanation-panel, .presenter-next, .appearance-panel, .export-menu, .toast) { background: var(--ui-surface); color: var(--ui-text); border-color: var(--ui-border); border-radius: var(--ui-panel-radius); box-shadow: var(--ui-panel-shadow); }
+.app-shell :is(.brand, .presenter-copy, .presenter-notes h2, .presenter-next h2, .empty-canvas h2) { color: var(--ui-text); }
+.app-shell :is(.presenter-notes, .presenter-next, .appearance-panel, .export-menu, .toast) { background: var(--ui-surface); color: var(--ui-text); border-color: var(--ui-border); border-radius: var(--ui-panel-radius); box-shadow: var(--ui-panel-shadow); }
 .app-shell :is(.document-name, .ui-icon-button, .zoom-control, .page-switch) { background: var(--ui-surface); color: var(--ui-text); border-radius: var(--ui-control-radius); box-shadow: var(--ui-control-shadow); }
-.app-shell :is(.button, .presenter-notes-tools > button, .explanation-tools > button, .explanation-navigation button, .mac-directory-buttons button) { background: var(--ui-surface); color: var(--ui-muted); border-color: var(--ui-border); border-radius: var(--ui-pill-radius); }
-.app-shell :is(.document-meta, .ui-icon-button, .export-menu svg, .icon-button, .zoom-control button, .page-switch-count, .page-switch button, .presenter-eyebrow, .presenter-file, .presenter-font-control span, .presenter-empty, .explanation-empty, .explanation-navigation > span, .mac-microphone, .mac-directory-toggle, .mac-directory-location, .mac-directory-location button, .mac-directory-settings label, .mac-open-recording, .empty-canvas) { color: var(--ui-muted); }
+.app-shell :is(.button, .presenter-notes-tools > button, .mac-directory-buttons button) { background: var(--ui-surface); color: var(--ui-muted); border-color: var(--ui-border); border-radius: var(--ui-pill-radius); }
+.app-shell :is(.document-meta, .ui-icon-button, .export-menu svg, .icon-button, .zoom-control button, .page-switch-count, .page-switch button, .presenter-eyebrow, .presenter-file, .presenter-font-control span, .presenter-empty, .mac-microphone, .mac-directory-toggle, .mac-directory-location, .mac-directory-location button, .mac-directory-settings label, .mac-open-recording, .empty-canvas) { color: var(--ui-muted); }
 .app-shell :is(.zoom-control .zoom-value, .page-switch-current) { color: var(--ui-text); }
 .app-shell :is(.page-switch-separator, .page-switch button:disabled) { color: var(--ui-disabled); }
 .app-shell .zoom-control > span { background: var(--ui-border); }
 .app-shell .page-switch button:first-child { border-radius: var(--ui-control-radius) 0 0 var(--ui-control-radius); }
 .app-shell .page-switch button:last-child { border-radius: 0 var(--ui-control-radius) var(--ui-control-radius) 0; }
-.app-shell :is(.ui-icon-button, .button, .export-menu button, .zoom-control button, .page-switch button, .presenter-font-control button, .presenter-notes-tools > button, .explanation-tools > button, .explanation-navigation button, .mac-directory-buttons button, .icon-button, .mac-directory-toggle, .editor-tools button):hover:not(:disabled) { background: var(--ui-hover); color: var(--ui-accent); border-color: var(--ui-border); }
+.app-shell :is(.ui-icon-button, .button, .export-menu button, .zoom-control button, .page-switch button, .presenter-font-control button, .presenter-notes-tools > button, .mac-directory-buttons button, .icon-button, .mac-directory-toggle, .editor-tools button):hover:not(:disabled) { background: var(--ui-hover); color: var(--ui-accent); border-color: var(--ui-border); }
 .app-shell :is(.ui-icon-button.is-active, .ui-icon-button[aria-expanded='true'], .ui-icon-button[aria-pressed='true'], .button.is-active, .mac-microphone.is-active, .mac-directory-toggle[aria-expanded='true']) { background: var(--ui-active); color: var(--ui-accent); }
 .app-shell .page-switch button:active:not(:disabled) { background: var(--ui-active); }
 .app-shell :is(.button-dark, .mac-record-button, .mac-directory-buttons button[type='submit']) { background: var(--ui-accent); color: var(--ui-primary-text); border-color: var(--ui-accent); border-radius: var(--ui-pill-radius); }
@@ -103,7 +103,7 @@
 .app-shell .ui-icon-button[data-tooltip]::after { background: var(--ui-surface); color: var(--ui-text); border-color: var(--ui-border); border-radius: var(--ui-small-radius); box-shadow: var(--ui-panel-shadow); }
 .app-shell :is(button, a, textarea, input, select):focus-visible { outline-color: var(--ui-accent); }
 .app-shell :is(.mac-microphone:focus-within, .mac-directory-settings > input:focus) { outline-color: var(--ui-accent); }
-.app-shell :is(.presenter-notes-tools, .presenter-introduction, .mac-recording-controls, .mac-directory-settings, .explanation-tools, .explanation-navigation, .plugin-catalog) { border-color: var(--ui-border); }
+.app-shell :is(.presenter-notes-tools, .presenter-introduction, .mac-recording-controls, .mac-directory-settings, .plugin-catalog) { border-color: var(--ui-border); }
 .app-shell .presenter-cue { background: var(--ui-surface); color: var(--ui-muted); border-color: var(--ui-border); }
 .app-shell :is(.presenter-progress, .presenter-next-icon) { color: var(--ui-accent); background: var(--ui-active); }
 .app-shell .presenter-progress { border-radius: var(--ui-pill-radius); }
@@ -113,12 +113,9 @@
 .app-shell .presenter-copy :is(code, pre) { background: var(--ui-subtle); color: var(--ui-text); border-radius: var(--ui-small-radius); }
 .app-shell .presenter-copy a { color: var(--ui-accent); }
 .app-shell .presenter-copy :is(td, th) { border-color: var(--ui-border); }
-.app-shell .explanation-copy blockquote { color: var(--ui-muted); border-color: var(--ui-accent); }
-.app-shell :is(.mac-directory-settings > input, .explanation-selection, .appearance-panel select) { color: var(--ui-text); background: var(--ui-subtle); border-color: var(--ui-border); border-radius: var(--ui-small-radius); }
+.app-shell :is(.mac-directory-settings > input, .appearance-panel select) { color: var(--ui-text); background: var(--ui-subtle); border-color: var(--ui-border); border-radius: var(--ui-small-radius); }
 .app-shell input::placeholder { color: var(--ui-muted); }
 .app-shell option { color: var(--ui-text); background: var(--ui-surface); }
-.app-shell.explanation-mode [data-reading-current='true'] { background-color: color-mix(in srgb, var(--ui-accent) 7%, transparent); box-shadow: 0 0 0 2px var(--ui-border); }
-.app-shell.explanation-mode [data-reading-step]:focus-visible { outline-color: var(--ui-accent); }
 
 .app-shell .editor-panel { background: var(--ui-subtle); color: var(--ui-text); border-color: var(--ui-border); }
 .app-shell .editor-tools button { background: var(--ui-surface); color: var(--ui-muted); border-color: var(--ui-border); border-radius: var(--ui-small-radius); }
@@ -135,6 +132,6 @@
 .app-shell .export-menu button { border-radius: var(--ui-small-radius); }
 .app-shell .content-block input[type='checkbox'] { accent-color: var(--ui-accent); }
 
-.app-shell[data-board-theme='editorial'] :is(.presenter-notes, .explanation-panel) { border-top: 3px solid var(--ui-accent); }
-.app-shell:is([data-board-theme='editorial'], [data-board-theme='particles']) :is(.presenter-notes h2, .explanation-heading h2) { color: var(--ui-accent); }
+.app-shell[data-board-theme='editorial'] .presenter-notes { border-top: 3px solid var(--ui-accent); }
+.app-shell:is([data-board-theme='editorial'], [data-board-theme='particles']) .presenter-notes h2 { color: var(--ui-accent); }
 .app-shell .player-controls :is(button, input):focus-visible { outline-color: #fff; }

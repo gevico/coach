@@ -113,10 +113,6 @@ function copyComputedStyles(source: HTMLElement, clone: HTMLElement): void {
       target.style.setProperty('transform', 'none', 'important');
       target.style.setProperty('clip-path', 'none', 'important');
     }
-    if (element.getAttribute('data-reading-current') === 'true') {
-      target.style.setProperty('background-color', 'transparent', 'important');
-      target.style.setProperty('box-shadow', 'none', 'important');
-    }
   });
 }
 

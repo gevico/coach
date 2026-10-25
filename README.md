@@ -4,7 +4,6 @@
     <a href="#快速开始">快速开始</a> ·
     <a href="#在-cnb-workspace-中使用">CNB Workspace</a> ·
     <a href="#编写内容">编写内容</a> ·
-    <a href="#阅读解析">阅读解析</a> ·
     <a href="#演讲与录制">演讲与录制</a> ·
     <a href="docs/cli.md">命令文档</a>
   </p>
@@ -36,7 +35,6 @@ npm link
 ```bash
 coach lesson.md
 coach lesson.md --presenter
-coach design.md --explain
 ```
 
 命令会启动本地服务并打开浏览器。使用 `Ctrl+C` 停止服务；也可以通过 `npm start -- lesson.md` 启动。
@@ -90,7 +88,7 @@ CNB 端口预览要求服务监听 `0.0.0.0`，因此启动命令需要填写 `-
 coach "public/examples/我的课程.md" --host 0.0.0.0 --port 4173 --presenter --no-open
 ```
 
-CNB 中可以逐步展示板书、阅读口播与解析，并导出 PDF、SVG 和 Markdown。Mac 录制功能需要在 macOS 本地运行。
+CNB 中可以逐步展示板书、阅读口播，并导出 PDF、SVG 和 Markdown。Mac 录制功能需要在 macOS 本地运行。
 
 开发网页界面时启动 Vite：
 
@@ -169,24 +167,11 @@ coach lesson.md --presenter
 
 </details>
 
-`#` 设置板书大标题，`##` 创建栏目，`###` 创建板块。一级标题后的 `preface:` 注释设置前言正文，支持 Markdown 粗体和列表；未填写时显示开场口播或总体解析。段落、顶层列表项、图片、代码块和表格分别构成展示步骤。
+`#` 设置板书大标题，`##` 创建栏目，`###` 创建板块。一级标题后的 `preface:` 注释设置前言正文，支持 Markdown 粗体和列表；未填写时显示开场口播。段落、顶层列表项、图片、代码块和表格分别构成展示步骤。
 
 在独立的一行写入 `<!-- pagebreak -->` 开始下一张画布，沿用课程大标题；新的一级标题可以创建具有独立标题的画布。工具栏的左右按钮按 `1 / 2` 这样的页码切换画布，方向键控制内容步骤。完整示例见 [multiple-canvases.md](samples/multiple-canvases.md)。
 
 `speaker:` 注释显示在演讲模式的口播区域；注释附在对应内容之后，列表内按所属项目缩进。重点标记支持 `:highlight[高亮]`、`:circle[圈线]` 和 `:shade[底部阴影]`。
-
-## 阅读解析
-
-解释模式展示完整板书，并在右侧显示当前内容的解析。点击板书、选择目录或使用方向键，自行控制阅读进度。
-
-```markdown
-一个需要说明的设计结论。
-<!-- explain:
-这里补充推理过程、具体例子和适用条件，可以使用 Markdown。
--->
-```
-
-按 `E` 切换解释模式，或通过 `coach design.md --explain` 打开。点击“复制提示词”，把板书交给 ChatGPT 添加解析，再导入生成的 Markdown。解析注释保存在同一份文件中；已有的 `speaker:` 讲解也可以直接阅读。
 
 ## 演讲与录制
 
@@ -198,7 +183,6 @@ coach lesson.md --presenter
 | --- | --- |
 | `→` / `←` | 下一步 / 上一步 |
 | `P` | 切换演讲模式 |
-| `E` | 切换解释模式 |
 | `F` / `Esc` | 进入禅模式 / 退出当前模式 |
 | 鼠标拖动、触摸板滚动 | 平移画布 |
 | 触摸板捏合、`Ctrl` / `Meta` + 滚动 | 围绕指针缩放 |
@@ -209,7 +193,7 @@ coach lesson.md --presenter
 
 ## 导出与开发
 
-工具栏支持导出 **PDF、SVG 和 Markdown**。PDF、SVG 包含当前画布的全部内容；Markdown 保留口播和解析注释。网络图片导出需要图片服务器允许跨域读取。
+工具栏支持导出 **PDF、SVG 和 Markdown**。PDF、SVG 包含当前画布的全部内容；Markdown 保留板书内容和口播注释。网络图片导出需要图片服务器允许跨域读取。
 
 ```bash
 npm run dev

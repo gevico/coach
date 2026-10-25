@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, ChangeEvent, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
-import { BookOpen, ChevronDown, ChevronLeft, ChevronRight, Code2, Download, Expand, Eye, FileText, ImagePlus, Lightbulb, Maximize2, Minus, Plus, Presentation, RotateCcw, Scan, X } from 'lucide-react'
+import type { CSSProperties, ChangeEvent } from 'react'
+import { BookOpen, ChevronDown, ChevronLeft, ChevronRight, Code2, Download, Expand, Eye, FileText, ImagePlus, Maximize2, Minus, Plus, Presentation, RotateCcw, Scan, X } from 'lucide-react'
 import MarkdownContent from './components/MarkdownContent'
 import BoardWritingEffects from './components/BoardWritingEffects'
 import CameraCanvas, { BASE_ZOOM } from './components/CameraCanvas'
@@ -15,8 +15,6 @@ import { usePresenterLayout } from './lib/presenter-layout'
 import { useMacRecording } from './lib/recording'
 import BoardIntroduction from './components/BoardIntroduction'
 import { outlineFromBoard } from './lib/outline'
-import ExplanationPanel from './components/ExplanationPanel'
-import { buildExplanationPrompt, explanationsFromBoard } from './lib/explanation'
 import coachIcon from '../assets/brand/coach-icon.svg'
 import BoardAppearance from './components/BoardAppearance'
 import BoardEntranceEffects from './components/BoardEntranceEffects'
@@ -28,16 +26,15 @@ const STORAGE_KEY = 'coach-markdown-v1'
 const COLUMN_WIDTH = 470
 const COLUMN_GAP = 32
 const BOARD_PADDING = 56
-type DisplayMode = 'normal' | 'presenter' | 'explain'
+type DisplayMode = 'normal' | 'presenter'
 
 function initialDisplayMode(): DisplayMode {
   const params = new URLSearchParams(window.location.search)
-  if (params.get('explain') === '1') return 'explain'
   if (params.get('presenter') === '1') return 'presenter'
   if (params.get('zen') === '1') return 'normal'
   try {
     const saved = sessionStorage.getItem('coach-display-mode')
-    if (saved === 'normal' || saved === 'presenter' || saved === 'explain') return saved
+    if (saved === 'normal' || saved === 'presenter') return saved
     if (sessionStorage.getItem('coach-presenter-mode') === 'true') return 'presenter'
   } catch { return 'normal' }
   return 'normal'
@@ -73,11 +70,10 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   const [followContent, setFollowContent] = useState(true)
   const [zenMode, setZenMode] = useState(() => {
     const params = new URLSearchParams(window.location.search)
-    if (params.get('explain') === '1' || params.get('presenter') === '1') return false
+    if (params.get('presenter') === '1') return false
     return params.get('zen') === '1' || sessionStorage.getItem('coach-zen-mode') === 'true'
   })
   const [displayMode, setDisplayMode] = useState<DisplayMode>(initialDisplayMode)
-  const [readingStep, setReadingStep] = useState(() => outlineFromBoard(compileMarkdown(source)).length ? 0 : 1)
   const [notesSource, setNotesSource] = useState(() => initialDocument?.notes?.source ?? savedValue(`${storageKey}-notes`) ?? '')
   const [notesFileName, setNotesFileName] = useState(() => initialDocument?.notes?.fileName ?? savedValue(`${storageKey}-notes-name`) ?? '')
   const [boardHeight, setBoardHeight] = useState(900)
@@ -99,7 +95,6 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   const workspaceRef = useRef<HTMLElement>(null)
   const exportMenuRef = useRef<HTMLDivElement>(null)
   const fullscreenTransitionRef = useRef<Promise<void>>(Promise.resolve())
-  const readingPointerRef = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null)
   const assetBase = new URL(initialDocument?.assetBase ?? '/', window.location.origin).href
 
   const document = useMemo(() => compileMarkdown(renderedSource), [renderedSource])
@@ -122,13 +117,10 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   const boardWidth = BOARD_PADDING * 2 + layoutColumns * COLUMN_WIDTH + (layoutColumns - 1) * COLUMN_GAP
   const blockCount = page?.columns.reduce((count, column) => count + column.blocks.length, 0) || 0
   const total = blockCount + (page?.columns.filter((column) => column.title).length || 0)
-  const explanationMode = displayMode === 'explain'
-  const explanationActive = explanationMode && !zenMode
   const presenterActive = displayMode === 'presenter' && !zenMode
-  const visibleCount = explanationMode || showAll ? total : Math.min(step, total)
-  const navigationStep = explanationMode ? Math.min(readingStep, total) : visibleCount
-  const opening = hasOutline && (explanationMode ? navigationStep === 0 : !showAll && visibleCount === 0)
-  const focusIndex = !followContent || (!explanationMode && showAll) ? null : opening ? 0 : navigationStep > 0 ? navigationStep - 1 + (hasOutline ? 1 : 0) : null
+  const visibleCount = showAll ? total : Math.min(step, total)
+  const opening = hasOutline && !showAll && visibleCount === 0
+  const focusIndex = !followContent || showAll ? null : opening ? 0 : visibleCount > 0 ? visibleCount - 1 + (hasOutline ? 1 : 0) : null
   const sourceKey = `${page?.id}-${revision}`
   const recording = useMacRecording()
   const presenterStyle = usePresenterLayout(workspaceRef, presenterActive, recording.frozen)
@@ -139,8 +131,6 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   const pageSteps = document.pages.map((item) => item.columns.reduce((count, column) => count + column.blocks.length + (column.title ? 1 : 0), 0))
   const narrationStep = pageSteps.slice(0, pageIndex).reduce((sum, count) => sum + count, 0) + visibleCount
   const narrationTotal = pageSteps.reduce((sum, count) => sum + count, 0)
-  const explanations = useMemo(() => explanationsFromBoard(document), [document])
-  const pageOffset = pageSteps.slice(0, pageIndex).reduce((sum, count) => sum + count, 0)
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -148,7 +138,6 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
         setRenderedSource(source)
         setPageIndex(0)
         setStep(outlineFromBoard(compileMarkdown(source)).length ? 0 : 1)
-        setReadingStep(outlineFromBoard(compileMarkdown(source)).length ? 0 : 1)
         setRevision((value) => value + 1)
       }
       try { localStorage.setItem(storageKey, source) } catch { setMessage('浏览器存储空间不足，请下载 Markdown 保存内容。') }
@@ -169,96 +158,28 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
     else sessionStorage.removeItem('coach-presenter-mode')
   }, [displayMode])
 
-  function changeDisplayMode(mode: DisplayMode) {
-    if (explanationMode && mode !== 'explain') {
-      setStep(readingStep)
-      setShowAll(false)
-    }
-    setDisplayMode(mode)
-  }
-
   function togglePresenter() {
     if (recording.busy) return
     setEditorOpen(false)
     setExportOpen(false)
-    changeDisplayMode(presenterActive ? 'normal' : 'presenter')
-    if (zenMode) void changeZen(false)
-  }
-
-  function toggleExplanation() {
-    if (recording.busy) return
-    setEditorOpen(false)
-    setExportOpen(false)
-    changeDisplayMode(explanationActive ? 'normal' : 'explain')
-    if (!explanationMode) setReadingStep(showAll ? total : visibleCount)
+    setDisplayMode(presenterActive ? 'normal' : 'presenter')
     if (zenMode) void changeZen(false)
   }
 
   function changePage(index: number, last = false) {
     setPageIndex(index)
     setStep(last ? pageSteps[index] : index === 0 && outline.length > 0 ? 0 : 1)
-    setReadingStep(last ? pageSteps[index] : index === 0 && outline.length > 0 ? 0 : 1)
     setShowAll(false)
   }
 
   function nextStep() {
-    if (explanationMode) {
-      if (readingStep >= total && pageIndex < document.pages.length - 1) changePage(pageIndex + 1)
-      else setReadingStep(Math.min(total, readingStep + 1))
-      return
-    }
     if (presenterActive && visibleCount >= total && pageIndex < document.pages.length - 1) changePage(pageIndex + 1)
     else { setShowAll(false); setStep(Math.min(total, visibleCount + 1)) }
   }
 
   function previousStep() {
-    if (explanationMode) {
-      if (readingStep <= 1 && pageIndex > 0) changePage(pageIndex - 1, true)
-      else setReadingStep(Math.max(hasOutline ? 0 : 1, readingStep - 1))
-      return
-    }
     if (presenterActive && visibleCount <= 1 && pageIndex > 0) changePage(pageIndex - 1, true)
     else { setShowAll(false); setStep(Math.max(hasOutline ? 0 : 1, visibleCount - 1)) }
-  }
-
-  function selectExplanation(number: number) {
-    if (number === 0) {
-      setPageIndex(0)
-      setReadingStep(outline.length ? 0 : 1)
-      return
-    }
-    const selected = explanations.steps.find((item) => item.number === number)
-    if (selected) { setPageIndex(selected.pageIndex); setReadingStep(selected.localStep) }
-  }
-
-  async function copyExplanationPrompt() {
-    try {
-      await navigator.clipboard.writeText(buildExplanationPrompt(source))
-      setMessage('已复制板书和解析生成要求，可以粘贴到 ChatGPT。')
-    } catch { setMessage('无法复制提示词，请检查浏览器的剪贴板权限。') }
-  }
-
-  function beginReadingPointer(event: ReactPointerEvent<HTMLElement>) {
-    if (!explanationActive || event.button !== 0 || !event.isPrimary) return
-    readingPointerRef.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false }
-  }
-
-  function moveReadingPointer(event: ReactPointerEvent<HTMLElement>) {
-    const start = readingPointerRef.current
-    if (start && (start.id !== event.pointerId || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5)) start.moved = true
-  }
-
-  function finishReadingPointer(event: ReactPointerEvent<HTMLElement>) {
-    const start = readingPointerRef.current
-    readingPointerRef.current = null
-    if (!explanationActive || !start || start.id !== event.pointerId || start.moved) return
-    for (const node of boardRef.current?.querySelectorAll<HTMLElement>('[data-reading-step]') || []) {
-      const bounds = node.getBoundingClientRect()
-      if (event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom) {
-        setReadingStep(Number(node.dataset.readingStep))
-        break
-      }
-    }
   }
 
   function changeZen(enabled: boolean) {
@@ -299,22 +220,19 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
         void window.document.exitFullscreen()
         return
       }
-      if (recording.busy && ['p', 'e', 'f', 'Escape'].includes(event.key === 'Escape' ? event.key : event.key.toLowerCase())) {
+      if (recording.busy && ['p', 'f', 'Escape'].includes(event.key === 'Escape' ? event.key : event.key.toLowerCase())) {
         event.preventDefault()
         return
       }
       if (event.key === 'Escape' && zenMode) {
         event.preventDefault()
         void exitZen()
-      } else if (event.key === 'Escape' && (presenterActive || explanationActive)) {
+      } else if (event.key === 'Escape' && presenterActive) {
         event.preventDefault()
-        changeDisplayMode('normal')
+        setDisplayMode('normal')
       } else if (event.key.toLowerCase() === 'p') {
         event.preventDefault()
         togglePresenter()
-      } else if (event.key.toLowerCase() === 'e') {
-        event.preventDefault()
-        toggleExplanation()
       } else if (event.key.toLowerCase() === 'f') {
         event.preventDefault()
         if (zenMode) void exitZen()
@@ -329,7 +247,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [total, visibleCount, zenMode, presenterActive, explanationMode, explanationActive, readingStep, pageIndex, document.pages.length, recording.busy])
+  }, [total, visibleCount, zenMode, presenterActive, pageIndex, document.pages.length, recording.busy])
 
   useEffect(() => {
     if (!message) return
@@ -382,8 +300,8 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
     setSource(await file.text())
     setSourceFileName(file.name)
     setShowAll(false)
-    setEditorOpen(!explanationActive)
-    if (!explanationActive) setDisplayMode('normal')
+    setEditorOpen(true)
+    setDisplayMode('normal')
     setMessage(`已导入 ${file.name}`)
     event.target.value = ''
   }
@@ -424,14 +342,12 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
   function revealAttributes() {
     const index = ++revealIndex
     const visible = index <= visibleCount
-    return { 'data-visible': visible, 'aria-hidden': !visible, 'data-reading-step': index, 'data-reading-current': explanationActive && readingStep === index, role: explanationActive ? 'button' : undefined, tabIndex: explanationActive ? 0 : undefined, 'aria-pressed': explanationActive ? readingStep === index : undefined, onKeyDown: explanationActive ? (event: ReactKeyboardEvent<HTMLElement>) => {
-      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setReadingStep(index) }
-    } : undefined }
+    return { 'data-visible': visible, 'aria-hidden': !visible, 'data-reading-step': index }
   }
 
   return (
     <PresentationContext.Provider value={{ settings: presentation, paused: effectsPaused || pageHidden, reduced, recording: recording.busy }}>
-    <div className={`app-shell ${zenMode ? 'zen-mode' : ''} ${presenterActive ? 'presenter-mode' : ''} ${explanationActive ? 'explanation-mode' : ''}`} data-recording-busy={recording.busy} data-board-theme={presentation.theme}>
+    <div className={`app-shell ${zenMode ? 'zen-mode' : ''} ${presenterActive ? 'presenter-mode' : ''}`} data-recording-busy={recording.busy} data-board-theme={presentation.theme}>
       {!zenMode && <header className="app-header">
         <a className="brand" href="/" aria-label="Coach 首页"><span className="brand-symbol" style={{ maskImage: `url(${coachIcon})` }} aria-hidden="true" /><span>coach</span></a>
         <div className="header-divider" />
@@ -440,15 +356,14 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
           <BoardAppearance settings={presentation} paused={effectsPaused} disabled={recording.busy} onChange={changePresentation} onPause={() => setEffectsPaused(value => !value)} />
           <div className="reveal-controls">
             <div className="page-switch" role="group" aria-label="画布换页"><button aria-label="上一张画布" disabled={pageIndex <= 0} onClick={() => changePage(pageIndex - 1)}><ChevronLeft size={18} strokeWidth={2.25} /></button><span className="page-switch-count" aria-live="polite"><span className="page-switch-current">{pageIndex + 1}</span><span className="page-switch-separator">/</span><span>{Math.max(1, document.pages.length)}</span></span><button aria-label="下一张画布" disabled={pageIndex >= document.pages.length - 1} onClick={() => changePage(pageIndex + 1)}><ChevronRight size={18} strokeWidth={2.25} /></button></div>
-            {!explanationActive && <button className={`ui-icon-button ${showAll ? 'is-active' : ''}`} aria-label="全部显示" data-tooltip="全部显示" aria-pressed={showAll} onClick={() => setShowAll(true)}><Eye size={18} /></button>}
-            <button className="ui-icon-button" aria-label={explanationActive ? outline.length ? '返回前言' : '返回首项' : '从头展示'} data-tooltip={explanationActive ? outline.length ? '返回前言' : '返回首项' : '从头展示'} onClick={() => { if (explanationActive) selectExplanation(0); else { setShowAll(false); setStep(hasOutline ? 0 : 1); setRevision((value) => value + 1) } cameraRef.current?.reset() }}><RotateCcw size={18} /></button>
+            <button className={`ui-icon-button ${showAll ? 'is-active' : ''}`} aria-label="全部显示" data-tooltip="全部显示" aria-pressed={showAll} onClick={() => setShowAll(true)}><Eye size={18} /></button>
+            <button className="ui-icon-button" aria-label="从头展示" data-tooltip="从头展示" onClick={() => { setShowAll(false); setStep(hasOutline ? 0 : 1); setRevision((value) => value + 1); cameraRef.current?.reset() }}><RotateCcw size={18} /></button>
           </div>
           <div className="zoom-control"><button aria-label="缩小画布" onClick={() => cameraRef.current?.zoomOut()}><Minus size={16} strokeWidth={2.25} /></button><button className="zoom-value" aria-label="重置缩放" aria-description="重置缩放到 100%" onClick={() => cameraRef.current?.reset()}>{Math.round(scale / BASE_ZOOM * 100)}%</button><button aria-label="放大画布" onClick={() => cameraRef.current?.zoomIn()}><Plus size={16} strokeWidth={2.25} /></button><span /><button aria-label="适应窗口" aria-description="适应窗口" onClick={() => cameraRef.current?.fit()}><Maximize2 size={16} /></button></div>
           <button className={`ui-icon-button follow-button ${followContent ? 'is-active' : ''}`} aria-label="标准跟踪" data-tooltip="标准跟踪" aria-pressed={followContent} onClick={() => setFollowContent(!followContent)}><Scan size={18} /></button>
           <button className="ui-icon-button zen-button" aria-label="禅模式" data-tooltip="禅模式 · F" disabled={recording.busy} aria-description="禅模式（F），Esc 退出" onClick={() => void enterZen()}><Expand size={18} /></button>
           <button className={`ui-icon-button presenter-button ${presenterActive ? 'is-active' : ''}`} aria-label="演讲模式" data-tooltip="演讲模式 · P" disabled={recording.busy} aria-description="演讲模式（P），Esc 退出" aria-pressed={presenterActive} onClick={togglePresenter}><Presentation size={18} /></button>
-          <button className={`ui-icon-button ${explanationActive ? 'is-active' : ''}`} aria-label="解释模式" data-tooltip="解释模式 · E" disabled={recording.busy} aria-description="解释模式（E），Esc 退出" aria-pressed={explanationActive} onClick={toggleExplanation}><Lightbulb size={18} /></button>
-          <button className={`ui-icon-button ${editorOpen ? 'is-active' : ''}`} aria-label="编辑 Markdown" data-tooltip="编辑 Markdown" disabled={recording.busy} onClick={() => { changeDisplayMode('normal'); setEditorOpen(!editorOpen) }} aria-expanded={editorOpen}><Code2 size={18} /></button>
+          <button className={`ui-icon-button ${editorOpen ? 'is-active' : ''}`} aria-label="编辑 Markdown" data-tooltip="编辑 Markdown" disabled={recording.busy} onClick={() => { setDisplayMode('normal'); setEditorOpen(!editorOpen) }} aria-expanded={editorOpen}><Code2 size={18} /></button>
           <div className="export-control" ref={exportMenuRef}>
             <button className="ui-icon-button" aria-label={exporting ? '正在导出' : '导出画布'} data-tooltip={exporting ? '正在导出' : '导出画布'} disabled={!page || exporting} onClick={() => setExportOpen(!exportOpen)} aria-expanded={exportOpen}><Download size={18} /></button>
             {exportOpen && <div className="export-menu">
@@ -460,7 +375,7 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
         </div>
       </header>}
 
-      <main ref={workspaceRef} className={`workspace ${editorOpen ? 'with-editor' : ''} ${presenterActive ? 'presenter-workspace' : ''} ${explanationActive ? 'explanation-workspace' : ''}`} style={presenterStyle}>
+      <main ref={workspaceRef} className={`workspace ${editorOpen ? 'with-editor' : ''} ${presenterActive ? 'presenter-workspace' : ''}`} style={presenterStyle}>
         {editorOpen && <aside className="editor-panel">
           <div className="editor-heading"><h2>内容编辑</h2><button className="icon-button" aria-label="收起编辑区" onClick={() => setEditorOpen(false)}><X size={18} /></button></div>
           <div className="editor-tools"><button onClick={() => fileRef.current?.click()}><FileText size={14} />导入 Markdown</button><button onClick={() => imageRef.current?.click()}><ImagePlus size={14} />添加图片</button></div>
@@ -472,31 +387,30 @@ export default function App({ initialDocument }: { initialDocument?: InitialDocu
           <div className="editor-footer"><button onClick={() => { setSource(EXAMPLE_MARKDOWN); cameraRef.current?.fit() }}><RotateCcw size={13} />使用示例</button></div>
         </aside>}
 
-        <section id="coach-recording-canvas" className="canvas-area" aria-label={presenterActive ? '录制画布（16:9）' : '画布预览'} onPointerDownCapture={beginReadingPointer} onPointerMoveCapture={moveReadingPointer} onPointerUpCapture={finishReadingPointer} onPointerCancel={() => { readingPointerRef.current = null }}>
+        <section id="coach-recording-canvas" className="canvas-area" aria-label={presenterActive ? '录制画布（16:9）' : '画布预览'}>
           <div className="canvas-stage">
-            {page ? <CameraCanvas width={boardWidth} height={boardHeight} ready={ready} overview={showAll && !explanationMode} focusIndex={focusIndex} cameraRef={cameraRef} onZoomChange={setScale}>
+            {page ? <CameraCanvas width={boardWidth} height={boardHeight} ready={ready} overview={showAll} focusIndex={focusIndex} cameraRef={cameraRef} onZoomChange={setScale}>
               <article key={sourceKey} ref={boardRef} className="canvas-board" data-ready={ready} data-theme={presentation.theme} data-motion={presentation.motion} data-motion-paused={effectsPaused || pageHidden} aria-label={page.title || 'Markdown 画布'} style={{ width: boardWidth, '--column-count': layoutColumns } as CSSProperties}>
                 <div className="board-columns">
-                  {hasOutline && <section className="board-column board-opening" aria-label="板书大标题与前言" data-reveal data-visible="true" data-reading-step="0" data-reading-current={explanationActive && readingStep === 0}>
-                    <BoardIntroduction title={page.title} preface={page.preface || page.notes || page.explanation || ''} baseUrl={assetBase} />
+                  {hasOutline && <section className="board-column board-opening" aria-label="板书大标题与前言" data-reveal data-visible="true" data-reading-step="0">
+                    <BoardIntroduction title={page.title} preface={page.preface || page.notes || ''} baseUrl={assetBase} />
                   </section>}
                   {page.columns.map((column, columnIndex) => <section className="board-column" key={column.id} aria-label={column.title || `栏目 ${columnIndex + 1}`}>
                     {column.title && <h2 className="column-heading" data-reveal {...revealAttributes()}><span>{column.title}</span></h2>}
                     {column.blocks.map((block) => { const attributes = revealAttributes(); return <div className={`content-block block-${block.kind}`} key={block.id} data-reveal {...attributes}>
-                      <BlockContext.Provider value={{ active: !showAll && attributes['data-reading-step'] === navigationStep, visible: attributes['data-visible'] }}>
+                      <BlockContext.Provider value={{ active: !showAll && attributes['data-reading-step'] === visibleCount, visible: attributes['data-visible'] }}>
                       <MarkdownContent source={block.markdown} baseUrl={assetBase} />
                       </BlockContext.Provider>
                     </div> })}
                   </section>)}
                 </div>
-                <BoardWritingEffects step={explanationActive ? readingStep : visibleCount} ready={ready} overview={showAll} />
-                <BoardEntranceEffects step={explanationActive ? readingStep : visibleCount} ready={ready} overview={showAll} />
+                <BoardWritingEffects step={visibleCount} ready={ready} overview={showAll} />
+                <BoardEntranceEffects step={visibleCount} ready={ready} overview={showAll} />
               </article>
             </CameraCanvas> : <div className="empty-canvas"><BookOpen size={34} strokeWidth={1.2} /><h2>从一段 Markdown 开始</h2><button className="button button-dark" onClick={() => setEditorOpen(true)}><Code2 size={15} />编写内容</button></div>}
           </div>
         </section>
         {presenterActive && <PresenterNotes document={narration} fileName={embedded ? sourceFileName || '当前 Markdown' : notesFileName} step={narrationStep} total={narrationTotal} embedded={embedded} hasCurrent={visibleCount > 0} opening={opening} showIntroduction={!hasOutline || opening} onImport={() => notesFileRef.current?.click()} recording={recording} />}
-        {explanationActive && <ExplanationPanel document={explanations} current={pageOffset + navigationStep} opening={opening} hasOutline={outline.length > 0} canGoBack={pageOffset + navigationStep > (outline.length ? 0 : 1)} pageTitle={page?.title || ''} introduction={page?.explanation || page?.notes || ''} baseUrl={assetBase} onSelect={selectExplanation} onNext={nextStep} onPrevious={previousStep} onCopy={() => void copyExplanationPrompt()} onImport={() => fileRef.current?.click()} />}
       </main>
 
       {message && <div className="toast" role="status">{message}</div>}
